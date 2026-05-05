@@ -1,13 +1,5 @@
-function startApp() {
-  document.getElementById('screen-landing').hidden = true;
-  document.getElementById('app').hidden = false;
-  switchScreen('dashboard');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  // 랜딩 표시, 앱 숨김 확인
-  document.getElementById('screen-landing').hidden = false;
-  document.getElementById('app').hidden = true;
+document.addEventListener('DOMContentLoaded', async () => {
+  await switchScreen('dashboard');
 
   document.querySelectorAll('[data-screen]').forEach(btn => {
     btn.addEventListener('click', () => switchScreen(btn.dataset.screen));
