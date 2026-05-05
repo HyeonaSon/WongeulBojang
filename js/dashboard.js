@@ -1,91 +1,114 @@
 function initDashboard() {
-  const container = document.getElementById('screen-dashboard');
-
-  const projects    = getAllProjects();
-  const streak      = getStreak();
+  const container      = document.getElementById('screen-dashboard');
+  const projects       = getAllProjects();
   const activeProjects = projects.filter(p => p.deadline >= getToday());
+  const streak         = getStreak();
+  const totalChars     = projects.reduce((s, p) =>
+    s + getProjectWrittenChars(p.id), 0
+  );
 
-  // 프로젝트별 작성 글자 수
-  const writtenList = projects.map(p => getProjectWrittenChars(p.id));
-  const totalChars  = writtenList.reduce((a, b) => a + b, 0);
+  const savingsCards = activeProjects.map(p => {
+    const written      = getProjectWrittenChars(p.id);
+    const daily        = calcDailyTarget(
+      p.target_chars, written, p.deadline, p.write_days
+    );
+    const daysLeft     = getDaysLeft(p.deadline);
+    const progress     = calcProgress(written, p.target_chars);
+    const catClass     = getCatClass(p.category);
+    const writeDaysLabel = getWriteDaysLabel(p.write_days);
+    const canWrite     = isWriteDay(p) && p.start_date <= getToday();
 
-  // 프로젝트 카드 생성
-  const projectCards = activeProjects.map(p => {
-    const idx      = projects.indexOf(p);
-    const written  = writtenList[idx];
-    const daily    = calcDailyTarget(p.target_chars, written, p.deadline);
-    const daysLeft = getDaysLeft(p.deadline);
-    const progress = calcProgress(written, p.target_chars);
-    const catClass = getCatClass(p.category);
+    const todayPost    = getPostByDateAndProject(getToday(), p.id);
+    const todayChars   = todayPost ? todayPost.char_count : 0;
+    const todayDone    = todayChars >= daily;
 
-    const todayPost  = getPostByDateAndProject(getToday(), p.id);
-    const todayChars = todayPost ? todayPost.char_count : 0;
-    const todayDone  = todayChars >= daily;
+    // D-day 뱃지 스타일
+    const ddayClass = daysLeft <= 7 ? 'urgent' : todayDone ? 'done' : '';
+    const ddayText  = daysLeft === 0 ? '만기' : `D-${daysLeft}`;
+
+    // 오늘 납입 상태
+    let depositStatus = '';
+    if (!canWrite && p.start_date > getToday()) {
+      depositStatus = `<span class="today-deposit-value not-today">납입 시작 전</span>`;
+    } else if (!canWrite) {
+      depositStatus = `<span class="today-deposit-value not-today">납입일 아님</span>`;
+    } else if (todayDone) {
+      depositStatus = `<span class="today-deposit-value done">
+        ${todayChars.toLocaleString()}자 납입 완료 ✓
+      </span>`;
+    } else {
+      depositStatus = `<span class="today-deposit-value">
+        ${todayChars > 0
+          ? `${todayChars.toLocaleString()}자 / 목표 ${daily.toLocaleString()}자`
+          : `${daily.toLocaleString()}자 납입 필요`
+        }
+      </span>`;
+    }
 
     return `
-  <div class="project-card" onclick="openProjectDetail('${p.id}')">
-    <div class="project-card-top">
-      <div>
-        <div class="project-card-name">${escapeHtml(p.name)}</div>
-        <div class="project-card-category ${catClass}">${p.category}</div>
+      <div class="savings-card" onclick="openProjectDetail('${p.id}')">
+        <div class="savings-card-top">
+          <div class="savings-card-info">
+            <div class="savings-card-name">${escapeHtml(p.name)}</div>
+            <div class="savings-card-meta">
+              <span class="${catClass}">${p.category}</span>
+              <span>·</span>
+              <span>${writeDaysLabel}</span>
+            </div>
+          </div>
+          <div class="savings-card-dday ${ddayClass}">${ddayText}</div>
+        </div>
+
+        <div class="progress-track">
+          <div class="progress-fill ${progress >= 100 ? 'complete' : ''}"
+               style="width:${progress}%"></div>
+        </div>
+        <div class="progress-label">
+          <span>${written.toLocaleString()}자</span>
+          <span>${progress}% · 목표 ${p.target_chars.toLocaleString()}자</span>
+        </div>
+
+        <div class="today-deposit">
+          <span class="today-deposit-label">오늘 납입</span>
+          ${depositStatus}
+        </div>
       </div>
-      <div class="project-card-dday ${daysLeft <= 7 ? 'urgent' : ''}">
-        D-${daysLeft}
-      </div>
-    </div>
-
-    <!-- 납입 기간 표시 추가 -->
-    <div class="project-card-period">
-      ${p.start_date <= getToday()
-        ? `납입 중 · ${p.start_date} — ${p.deadline}`
-        : `납입 시작 ${p.start_date} · D-${getDaysLeft(p.start_date)}일 후`
-      }
-    </div>
-
-    <div class="progress-bar">
-      <div class="progress-fill" style="width:${progress}%"></div>
-    </div>
-    <div class="progress-label">
-      <span>${written.toLocaleString()}자</span>
-      <span>${progress}% · ${p.target_chars.toLocaleString()}자 목표</span>
-    </div>
-
-    <div class="daily-row ${todayDone ? 'done' : ''}">
-      <span class="daily-label">오늘 납입</span>
-      <span class="daily-value">
-        ${p.start_date > getToday()
-          ? '아직 납입 전이에요'
-          : todayChars.toLocaleString() + '자 ' + (todayDone ? '✓' : `/ 목표 ${daily.toLocaleString()}자`)
-        }
-      </span>
-    </div>
-  </div>
-`;
-  });
+    `;
+  }).join('');
 
   container.innerHTML = `
     <div class="dashboard-header">
       <span class="brand">원글보장</span>
+      <button class="header-btn" onclick="switchScreen('settings')">설정</button>
     </div>
 
-    <div class="total-card">
-      <div class="total-label">총 누적 잔고</div>
-      <div class="total-value">${totalChars.toLocaleString()}<span>자</span></div>
-      <div class="total-sub">${charsToPages(totalChars)}매 · 연속 ${streak}일</div>
+    <div class="balance-card">
+      <div class="balance-label">총 잔고</div>
+      <div class="balance-amount">
+        ${totalChars.toLocaleString()}<span>자</span>
+      </div>
+      <div class="balance-sub">
+        ${charsToPages(totalChars)}매
+        <span class="balance-streak">🔥 ${streak}일 연속</span>
+      </div>
     </div>
 
     <div class="section-header">
-      <span>진행 중인 적금</span>
-      <button class="text-btn" onclick="switchScreen('stats')">전체 보기</button>
+      <span class="section-title">진행 중인 적금</span>
+      <button class="section-action" onclick="switchScreen('stats')">
+        전체 보기
+      </button>
     </div>
 
-    <div class="project-list">
-      ${projectCards.length
-        ? projectCards.join('')
-        : `<div class="empty-state">진행 중인 프로젝트가 없어요.<br>새 적금을 만들어보세요.</div>`
-      }
-    </div>
+    ${savingsCards || `
+      <div class="empty-state">
+        <div class="empty-state-icon">🏦</div>
+        진행 중인 적금이 없어요.<br>새 적금을 개설해보세요.
+      </div>
+    `}
 
-    <button class="fab" onclick="showNewProjectForm()">+ 새 적금 만들기</button>
+    <button class="fab" onclick="showNewProjectForm()">
+      + 새 적금 개설하기
+    </button>
   `;
 }
