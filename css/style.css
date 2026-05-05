@@ -1319,16 +1319,13 @@ main {
    ════════════════════════════════ */
 
 /* ── 태블릿 (1024px 이하) ── */
-/* 레이아웃은 거의 그대로, 기능 소개만 조정 */
 
 @media (max-width: 1024px) {
 
-  /* 랜딩 미리보기 2열 유지 */
   #landing-preview {
     grid-template-columns: 1fr 1fr;
   }
 
-  /* 기능 소개만 가로 배치로 */
   #landing-features {
     grid-template-columns: 1fr;
     gap: var(--space-sm);
@@ -1350,7 +1347,6 @@ main {
 }
 
 /* ── 모바일 (640px 이하) ── */
-/* 여기서부터만 1열, 좁은 레이아웃 적용 */
 
 @media (max-width: 640px) {
 
@@ -1374,11 +1370,49 @@ main {
     font-size: var(--text-sm);
   }
 
-  /* 미리보기 1열로, 달력은 숨김 */
   #landing-preview {
     grid-template-columns: 1fr;
   }
 
+  .preview-phone {
+    padding: var(--space-lg);
+  }
+
+  .preview-cal-dows span {
+    font-size: 11px;
+  }
+
+  .pcell span {
+    font-size: 11px;
+  }
+
+  .pdot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .preview-cal-grid {
+    gap: 4px;
+  }
+
+  .preview-card-name {
+    font-size: var(--text-sm);
+  }
+
+  .preview-total-value {
+    font-size: var(--text-xl);
+  }
+
+  .preview-section-label,
+  .preview-total-label,
+  .preview-total-sub,
+  .preview-progress-label,
+  .preview-daily,
+  .preview-dday,
+  .preview-card-cat,
+  .preview-period {
+    font-size: 11px;
+  }
 
   .btn-hero {
     width: 100%;
