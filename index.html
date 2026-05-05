@@ -16,28 +16,191 @@
 <!-- 랜딩 페이지 -->
 <div id="screen-landing">
   <div id="landing-wrap">
-    <div id="landing-logo">원글보장</div>
-    <p id="landing-tagline">글을 적금처럼 모으세요</p>
 
-    <div class="landing-features">
-      <div class="landing-feature">
-        <span class="feature-icon">✍️</span>
-        <span>하루 한 번, 오늘의 글 납입</span>
+    <!-- 헤더 -->
+    <div id="landing-header">
+      <span id="landing-logo">원글보장</span>
+      <button id="btn-go-login" onclick="showAuthModal()">시작하기</button>
+    </div>
+
+    <!-- 히어로 -->
+    <div id="landing-hero">
+      <h1 id="landing-headline">글을<br>적금처럼 모으세요</h1>
+      <p id="landing-sub">매일 한 편씩 납입하면<br>마감일에 완성된 작품이 됩니다</p>
+      <button class="btn-hero" onclick="showAuthModal()">무료로 시작하기 →</button>
+    </div>
+
+    <!-- 앱 미리보기 -->
+    <div id="landing-preview">
+
+      <!-- 대시보드 미리보기 -->
+      <div class="preview-phone">
+        <div class="preview-bar">
+          <span class="preview-brand">원글보장</span>
+        </div>
+
+        <div class="preview-total">
+          <div class="preview-total-label">총 누적 잔고</div>
+          <div class="preview-total-value">24,600<span>자</span></div>
+          <div class="preview-total-sub">123매 · 연속 7일</div>
+        </div>
+
+        <div class="preview-section-label">진행 중인 적금</div>
+
+        <div class="preview-card">
+          <div class="preview-card-top">
+            <div>
+              <div class="preview-card-name">5월의 단편소설</div>
+              <div class="preview-card-cat cat-단편">단편</div>
+            </div>
+            <div class="preview-dday">D-18</div>
+          </div>
+          <div class="preview-progress-track">
+            <div class="preview-progress-fill" style="width: 32%"></div>
+          </div>
+          <div class="preview-progress-label">
+            <span>3,200자</span>
+            <span>32% · 10,000자 목표</span>
+          </div>
+          <div class="preview-daily">
+            <span>오늘 납입</span>
+            <span class="done">650자 ✓</span>
+          </div>
+        </div>
+
+        <div class="preview-card">
+          <div class="preview-card-top">
+            <div>
+              <div class="preview-card-name">올해의 장편</div>
+              <div class="preview-card-cat cat-장편">장편</div>
+            </div>
+            <div class="preview-dday urgent">D-6</div>
+          </div>
+          <div class="preview-progress-track">
+            <div class="preview-progress-fill" style="width: 18%"></div>
+          </div>
+          <div class="preview-progress-label">
+            <span>25,200자</span>
+            <span>18% · 140,000자 목표</span>
+          </div>
+          <div class="preview-daily">
+            <span>오늘 납입</span>
+            <span>0자 / 목표 2,400자</span>
+          </div>
+        </div>
+
       </div>
-      <div class="landing-feature">
-        <span class="feature-icon">📅</span>
-        <span>마감일까지 매일 목표 분량 안내</span>
+
+      <!-- 달력 미리보기 -->
+      <div class="preview-phone">
+        <div class="preview-bar">
+          <span class="preview-brand">2026년 5월</span>
+        </div>
+
+        <div class="preview-cal">
+          <div class="preview-cal-dows">
+            <span>일</span><span>월</span><span>화</span>
+            <span>수</span><span>목</span><span>금</span><span>토</span>
+          </div>
+          <div class="preview-cal-grid">
+            <!-- 1주 -->
+            <div class="pcell"></div>
+            <div class="pcell"></div>
+            <div class="pcell"></div>
+            <div class="pcell has">
+              <span>1</span><div class="pdot" style="background:var(--c-cat-단편)"></div>
+            </div>
+            <div class="pcell has done-cell">
+              <span>2</span><div class="pdot" style="background:var(--c-cat-단편)"></div>
+            </div>
+            <div class="pcell has done-cell">
+              <span>3</span><div class="pdot" style="background:var(--c-cat-장편)"></div>
+            </div>
+            <div class="pcell">
+              <span>4</span><div class="pdot empty"></div>
+            </div>
+            <!-- 2주 -->
+            <div class="pcell has done-cell">
+              <span>5</span><div class="pdot" style="background:var(--c-cat-단편)"></div>
+            </div>
+            <div class="pcell has done-cell">
+              <span>6</span><div class="pdot" style="background:var(--c-cat-단편)"></div>
+            </div>
+            <div class="pcell has done-cell">
+              <span>7</span><div class="pdot" style="background:var(--c-cat-장편)"></div>
+            </div>
+            <div class="pcell has done-cell">
+              <span>8</span><div class="pdot" style="background:var(--c-cat-단편)"></div>
+            </div>
+            <div class="pcell has done-cell">
+              <span>9</span><div class="pdot" style="background:var(--c-cat-단편)"></div>
+            </div>
+            <div class="pcell">
+              <span>10</span><div class="pdot empty"></div>
+            </div>
+            <div class="pcell">
+              <span>11</span><div class="pdot empty"></div>
+            </div>
+            <!-- 3주 -->
+            <div class="pcell has done-cell">
+              <span>12</span><div class="pdot" style="background:var(--c-cat-장편)"></div>
+            </div>
+            <div class="pcell today-cell">
+              <span>13</span><div class="pdot empty"></div>
+            </div>
+            <div class="pcell"><span>14</span></div>
+            <div class="pcell"><span>15</span></div>
+            <div class="pcell"><span>16</span></div>
+            <div class="pcell"><span>17</span></div>
+            <div class="pcell"><span>18</span></div>
+          </div>
+        </div>
+
+        <div class="preview-period-list">
+          <div class="preview-period">
+            <div class="period-dot" style="background:var(--c-cat-단편)"></div>
+            <span>5월의 단편소설</span>
+            <span class="period-range">05-01 — 05-31</span>
+          </div>
+          <div class="preview-period">
+            <div class="period-dot" style="background:var(--c-cat-장편)"></div>
+            <span>올해의 장편</span>
+            <span class="period-range">01-01 — 12-31</span>
+          </div>
+        </div>
       </div>
-      <div class="landing-feature">
-        <span class="feature-icon">📊</span>
-        <span>엽편·단편·중편·장편 달성 현황</span>
+
+    </div>
+
+    <!-- 기능 소개 -->
+    <div id="landing-features">
+      <div class="landing-feature-card">
+        <div class="lf-icon">📝</div>
+        <div class="lf-title">하루 한 번 납입</div>
+        <div class="lf-desc">하루가 지나면 수정·추가 불가.<br>그날의 글은 그날에만.</div>
+      </div>
+      <div class="landing-feature-card">
+        <div class="lf-icon">🎯</div>
+        <div class="lf-title">자동 목표 계산</div>
+        <div class="lf-desc">마감일까지 하루에 몇 자씩<br>써야 하는지 매일 알려줘요.</div>
+      </div>
+      <div class="landing-feature-card">
+        <div class="lf-icon">📚</div>
+        <div class="lf-title">원고지 분류</div>
+        <div class="lf-desc">엽편·단편·중편·경장편·장편<br>목표 분량에 맞게 자동 분류.</div>
       </div>
     </div>
 
-    <button id="btn-go-login" onclick="showAuthModal()">시작하기</button>
+    <!-- 하단 CTA -->
+    <div id="landing-cta">
+      <button class="btn-hero" onclick="showAuthModal()">지금 바로 시작하기 →</button>
+      <p>무료 · 가입 즉시 사용 가능</p>
+    </div>
+
+    <div id="landing-footer">© 2026 원글보장</div>
+
   </div>
 </div>
-
 <!-- 로그인 모달 -->
 <div id="auth-modal" hidden>
   <div id="auth-modal-inner">
