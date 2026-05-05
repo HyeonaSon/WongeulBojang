@@ -1,6 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo&display=swap');
-@import url('https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.min.css');
-
 :root {
   --font-serif: 'Nanum Myeongjo', serif;
   --font-sans:  'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
