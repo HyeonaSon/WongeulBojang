@@ -33,7 +33,7 @@ async function initDashboard() {
           <div class="project-card-top">
             <div>
               <div class="project-card-name">${escapeHtml(p.name)}</div>
-              <div class="project-card-category cat-${p.category}">${p.category}</div>
+              <div class="project-card-category getCatClass(p.category)">${getCatClass(p.category)}</div>
             </div>
             <div class="project-card-dday ${daysLeft <= 7 ? 'urgent' : ''}">
               D-${daysLeft}
