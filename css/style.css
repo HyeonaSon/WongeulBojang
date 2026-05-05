@@ -1668,3 +1668,90 @@ main {
   border-radius: 1px;
   width: 100%;
 }
+
+/* ── 설정 ── */
+
+.settings-header {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin-bottom: var(--space-xl);
+}
+
+.settings-section {
+  padding: var(--space-lg) 0;
+  border-bottom: 1px solid var(--c-line);
+}
+
+.settings-label {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--c-muted);
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-md);
+}
+
+.danger-label { color: var(--c-warn); }
+
+.settings-desc {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--c-text-2);
+  line-height: 1.7;
+  margin-bottom: var(--space-md);
+}
+
+.settings-info {
+  background: var(--c-surface-2);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.settings-info-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--c-text-2);
+}
+
+.settings-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.settings-btn {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 12px var(--space-lg);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-md);
+  text-align: left;
+  transition: all 0.15s;
+  color: var(--c-text);
+}
+
+.settings-btn:hover {
+  border-color: var(--c-accent);
+  color: var(--c-accent);
+}
+
+.danger-btn {
+  color: var(--c-warn);
+  border-color: var(--c-warn);
+  opacity: 0.6;
+}
+
+.danger-btn:hover {
+  background: var(--c-warn);
+  color: white;
+  border-color: var(--c-warn);
+  opacity: 1;
+}
