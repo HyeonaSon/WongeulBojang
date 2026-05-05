@@ -59,8 +59,8 @@ function onCharsInput() {
   const cat   = getCategory(chars);
 
   display.innerHTML = `
-    <div class="category-badge cat-${cat.name}">
-      <span class="category-name">${cat.name}</span>
+    <div class="category-badge getCatClass(cat.name)">
+      <span class="category-name">getCatClass(cat.name)</span>
       <span class="category-detail">${chars.toLocaleString()}자 · ${pages}매 · ${cat.desc}</span>
     </div>
   `;
@@ -137,7 +137,7 @@ async function openProjectDetail(projectId) {
     </div>
 
     <div class="project-detail-hero">
-      <div class="cat-badge cat-${project.category}">${project.category}</div>
+      <div class="cat-badge getCatClass(project.category">${getCatClass(project.category)}</div>
       <h2 class="project-detail-name">${escapeHtml(project.name)}</h2>
       <div class="project-meta-row">
         ${project.start_date} — ${project.deadline} · D-${daysLeft}
