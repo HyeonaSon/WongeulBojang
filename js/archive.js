@@ -46,32 +46,29 @@ async function renderArchive() {
   }
 
   for (let d = 1; d <= lastDate; d++) {
-    const dateStr = `${archiveYear}-${String(archiveMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const post    = postByDate[dateStr];
-    const done    = doneByDate[dateStr];
-    const isToday = dateStr === getToday();
-    const isSelected = dateStr === selectedDate;
-    const project = post ? projects.find(p => p.id === post.project_id) : null;
+  const dateStr = `${archiveYear}-${String(archiveMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  const post    = postByDate[dateStr];
+  const done    = doneByDate[dateStr];
+  const isToday = dateStr === getToday();
+  const isSelected = dateStr === selectedDate;
+  const project = post ? projects.find(p => p.id === post.project_id) : null;
+  const colorClass = project ? (CATEGORY_CLASS[project.category] || 'jogak') : null;
 
-    // 카테고리 → 영문 변수명
-    const dotColor = project
-      ? `var(--c-cat-${CATEGORY_CLASS[project.category] || 'jogak'})`
-      : 'var(--c-line)';
-
-    cells += `
-      <div class="cal-cell
-        ${post ? 'has-post' : ''}
-        ${isToday ? 'today' : ''}
-        ${done ? 'done' : ''}
-        ${isSelected ? 'selected' : ''}"
-        onclick="selectDate('${dateStr}')">
-        <span class="cal-date">${d}</span>
-        <div class="cal-dot ${post ? '' : 'empty-dot'}"
-             style="${post ? `background:${dotColor}` : ''}"></div>
-        ${post ? `<div class="cal-chars">${post.char_count.toLocaleString()}</div>` : ''}
+  cells += `
+    <div class="cal-cell
+      ${post ? 'has-post' : ''}
+      ${isToday ? 'today' : ''}
+      ${done ? 'done' : ''}
+      ${isSelected ? 'selected' : ''}"
+      onclick="selectDate('${dateStr}')">
+      <span class="cal-date">${d}</span>
+      <div class="cal-dot ${colorClass ? '' : 'empty-dot'}"
+           ${colorClass ? `style="background: var(--c-cat-${colorClass})"` : ''}>
       </div>
-    `;
-  }
+      ${post ? `<div class="cal-chars">${post.char_count.toLocaleString()}</div>` : ''}
+    </div>
+  `;
+}
 
   // 프로젝트 기간 바
   const projectBars = projects
