@@ -46,8 +46,12 @@ function showNewProjectForm() {
 }
 
 function onCharsInput() {
-  const chars   = Number(document.getElementById('proj-chars').value);
+  const input   = document.getElementById('proj-chars');
   const display = document.getElementById('category-display');
+
+  if (!input || !display) return;
+
+  const chars = Number(input.value);
 
   if (!chars || chars <= 0) {
     display.innerHTML = '';
@@ -59,8 +63,8 @@ function onCharsInput() {
   const cat   = getCategory(chars);
 
   display.innerHTML = `
-    <div class="category-badge getCatClass(cat.name)">
-      <span class="category-name">getCatClass(cat.name)</span>
+    <div class="category-badge">
+      <span class="category-name ${getCatClass(cat.name)}">${cat.name}</span>
       <span class="category-detail">${chars.toLocaleString()}자 · ${pages}매 · ${cat.desc}</span>
     </div>
   `;
