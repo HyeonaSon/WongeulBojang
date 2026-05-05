@@ -26,6 +26,12 @@ function getDaysLeft(deadline) {
   return Math.max(0, Math.ceil((end - today) / 86400000));
 }
 
+function getMonthRange(year, month) {
+  const start = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+  const end   = new Date(year, month + 1, 0).toISOString().slice(0, 10);
+  return { start, end };
+}
+
 function dateRange(startDate, endDate) {
   const result  = [];
   let current   = new Date(startDate);
@@ -37,10 +43,42 @@ function dateRange(startDate, endDate) {
   return result;
 }
 
-function getMonthRange(year, month) {
-  const start = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-  const end   = new Date(year, month + 1, 0).toISOString().slice(0, 10);
-  return { start, end };
+// ── 요일 ──────────────────────────────────────
+
+const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
+
+// 오늘 납입 가능한지
+function isWriteDay(project) {
+  if (!project.write_days || project.write_days.length === 0) return true;
+  return project.write_days.includes(new Date().getDay());
+}
+
+// 납입 요일 텍스트 반환
+function getWriteDaysLabel(writeDays) {
+  if (!writeDays || writeDays.length === 0) return '매일';
+  return writeDays.map(d => DAY_NAMES[d]).join('·');
+}
+
+// 기간 내 납입 가능 일수
+function countWritableDays(startDate, endDate, writeDays) {
+  if (!writeDays || writeDays.length === 0) {
+    const s = new Date(startDate);
+    const e = new Date(endDate);
+    return Math.max(1, Math.ceil((e - s) / 86400000) + 1);
+  }
+  let count   = 0;
+  let current = new Date(startDate);
+  const end   = new Date(endDate);
+  while (current <= end) {
+    if (writeDays.includes(current.getDay())) count++;
+    current.setDate(current.getDate() + 1);
+  }
+  return count || 1;
+}
+
+// 오늘부터 마감일까지 납입 가능 일수
+function countRemainingWritableDays(deadline, writeDays) {
+  return countWritableDays(getToday(), deadline, writeDays);
 }
 
 // ── 원고지 계산 ───────────────────────────────
@@ -54,6 +92,15 @@ const CATEGORIES = [
   { name: '장편',   minPages:  700, maxPages: 1200, desc: '700~1200매' },
 ];
 
+const CATEGORY_CLASS = {
+  '조각글': 'jogak',
+  '엽편':   'yeop',
+  '단편':   'dan',
+  '중편':   'jung',
+  '경장편': 'kyung',
+  '장편':   'jang',
+};
+
 function charsToPages(chars) {
   return Math.floor(chars / 200);
 }
@@ -64,13 +111,17 @@ function getCategory(chars) {
     || { name: '장편 초과', minPages: 1201, maxPages: Infinity, desc: '1200매 초과' };
 }
 
-// ── 하루 납입 목표 ────────────────────────────
+function getCatClass(categoryName) {
+  return 'cat-' + (CATEGORY_CLASS[categoryName] || 'jogak');
+}
 
-function calcDailyTarget(targetChars, writtenChars, deadline) {
+// ── 목표 계산 ─────────────────────────────────
+
+// 요일 반영 하루 목표
+function calcDailyTarget(targetChars, writtenChars, deadline, writeDays) {
   const remaining = Math.max(0, targetChars - writtenChars);
-  const daysLeft  = getDaysLeft(deadline);
-  if (daysLeft === 0) return remaining;
-  return Math.ceil(remaining / daysLeft);
+  const days      = countRemainingWritableDays(deadline, writeDays);
+  return Math.ceil(remaining / days);
 }
 
 function calcProgress(written, target) {
@@ -93,17 +144,4 @@ function appendZeros(inputId, count, onInput) {
   if (!input) return;
   input.value = (input.value || '') + '0'.repeat(count);
   if (onInput) onInput();
-}
-
-const CATEGORY_CLASS = {
-  '조각글': 'jogak',
-  '엽편':   'yeop',
-  '단편':   'dan',
-  '중편':   'jung',
-  '경장편': 'kyung',
-  '장편':   'jang',
-};
-
-function getCatClass(categoryName) {
-  return 'cat-' + (CATEGORY_CLASS[categoryName] || 'jogak');
 }
