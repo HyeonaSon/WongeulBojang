@@ -11,18 +11,50 @@
 </head>
 <body>
 
-  <!-- 로그인 -->
-  <div id="screen-auth">
-    <div id="auth-wrap">
-      <div id="auth-logo">원글보장</div>
-      <p id="auth-tagline">글을 적금처럼 모으세요</p>
-      <input id="auth-email"    type="email"    placeholder="이메일" />
-      <input id="auth-password" type="password" placeholder="비밀번호" />
-      <button id="btn-login"  onclick="handleLogin()">로그인</button>
-      <button id="btn-signup" onclick="handleSignup()">회원가입</button>
-      <div id="auth-message"></div>
+  <!-- 로그인 부분을 이걸로 교체 -->
+
+<!-- 랜딩 페이지 -->
+<div id="screen-landing">
+  <div id="landing-wrap">
+    <div id="landing-logo">원글보장</div>
+    <p id="landing-tagline">글을 적금처럼 모으세요</p>
+
+    <div class="landing-features">
+      <div class="landing-feature">
+        <span class="feature-icon">✍️</span>
+        <span>하루 한 번, 오늘의 글 납입</span>
+      </div>
+      <div class="landing-feature">
+        <span class="feature-icon">📅</span>
+        <span>마감일까지 매일 목표 분량 안내</span>
+      </div>
+      <div class="landing-feature">
+        <span class="feature-icon">📊</span>
+        <span>엽편·단편·중편·장편 달성 현황</span>
+      </div>
     </div>
+
+    <button id="btn-go-login" onclick="showAuthModal()">시작하기</button>
   </div>
+</div>
+
+<!-- 로그인 모달 -->
+<div id="auth-modal" hidden>
+  <div id="auth-modal-inner">
+    <button class="modal-close" onclick="hideAuthModal()">✕</button>
+    <div id="auth-logo">원글보장</div>
+
+    <div id="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">로그인</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')">회원가입</button>
+    </div>
+
+    <input id="auth-email"    type="email"    placeholder="이메일" />
+    <input id="auth-password" type="password" placeholder="비밀번호" />
+    <button id="btn-auth-submit" onclick="handleAuthSubmit()">로그인</button>
+    <div id="auth-message"></div>
+  </div>
+</div>
 
   <!-- 앱 -->
   <div id="app" hidden>
