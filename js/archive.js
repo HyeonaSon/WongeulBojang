@@ -1,71 +1,42 @@
 let archiveYear, archiveMonth;
 let selectedDate = null;
 
-async function initArchive() {
-  const now = new Date();
+function initArchive() {
+  const now    = new Date();
   archiveYear  = now.getFullYear();
   archiveMonth = now.getMonth();
   selectedDate = null;
-  await renderArchive();
+  renderArchive();
 }
 
-async function renderArchive() {
+function renderArchive() {
   const container = document.getElementById('screen-archive');
   const { start, end } = getMonthRange(archiveYear, archiveMonth);
 
-  const [posts, projects] = await Promise.all([
-    getPostsByDateRange(start, end),
-    getAllProjects()
-  ]);
+  const posts    = getPostsByDateRange(start, end);
+  const projects = getAllProjects();
 
   // 날짜별 포스트 맵
   const postByDate = {};
   posts.forEach(p => { postByDate[getDateStr(p.created_at)] = p; });
 
-  // 날짜별 하루 목표 달성 여부
+  // 날짜별 목표 달성 여부
   const doneByDate = {};
-  await Promise.all(posts.map(async p => {
+  posts.forEach(p => {
     const d       = getDateStr(p.created_at);
     const project = projects.find(pr => pr.id === p.project_id);
     if (!project) return;
-    const written = await getProjectWrittenChars(project.id);
+    const written = getProjectWrittenChars(project.id);
     const daily   = calcDailyTarget(project.target_chars, written, project.deadline);
     doneByDate[d] = p.char_count >= daily;
-  }));
+  });
 
   const monthLabel = formatMonthLabel(start);
   const firstDay   = new Date(archiveYear, archiveMonth, 1).getDay();
   const lastDate   = new Date(archiveYear, archiveMonth + 1, 0).getDate();
   const dows       = ['일', '월', '화', '수', '목', '금', '토'];
 
-  async function renderArchive() {
-  const container = document.getElementById('screen-archive');
-  const { start, end } = getMonthRange(archiveYear, archiveMonth);
-
-  const [posts, projects] = await Promise.all([
-    getPostsByDateRange(start, end),
-    getAllProjects()
-  ]);
-
-  const postByDate = {};
-  posts.forEach(p => { postByDate[getDateStr(p.created_at)] = p; });
-
-  const doneByDate = {};
-  await Promise.all(posts.map(async p => {
-    const d       = getDateStr(p.created_at);
-    const project = projects.find(pr => pr.id === p.project_id);
-    if (!project) return;
-    const written = await getProjectWrittenChars(project.id);
-    const daily   = calcDailyTarget(project.target_chars, written, project.deadline);
-    doneByDate[d] = p.char_count >= daily;
-  }));
-
-  const monthLabel = formatMonthLabel(start);
-  const firstDay   = new Date(archiveYear, archiveMonth, 1).getDay();
-  const lastDate   = new Date(archiveYear, archiveMonth + 1, 0).getDate();
-  const dows       = ['일', '월', '화', '수', '목', '금', '토'];
-
-  // 이 달에 걸쳐있는 프로젝트 목록 (최대 3개)
+  // 이 달에 걸쳐있는 프로젝트 (최대 3개)
   const activeProjects = projects
     .filter(p => p.start_date <= end && p.deadline >= start)
     .slice(0, 3);
@@ -83,12 +54,11 @@ async function renderArchive() {
     const isToday    = dateStr === getToday();
     const isSelected = dateStr === selectedDate;
 
-    // 이 날짜에 해당하는 프로젝트 바 (최대 3개)
     const bars = activeProjects.map(p => {
-      const inRange  = dateStr >= p.start_date && dateStr <= p.deadline;
-      const isStart  = dateStr === p.start_date;
-      const isEnd    = dateStr === p.deadline;
-      const hasPost  = post && post.project_id === p.id;
+      const inRange    = dateStr >= p.start_date && dateStr <= p.deadline;
+      const isStart    = dateStr === p.start_date;
+      const isEnd      = dateStr === p.deadline;
+      const hasPost    = post && post.project_id === p.id;
       const colorClass = CATEGORY_CLASS[p.category] || 'jogak';
 
       if (!inRange) return `<div class="cal-bar empty-bar"></div>`;
@@ -97,8 +67,7 @@ async function renderArchive() {
         <div class="cal-bar ${hasPost ? 'active-bar' : 'inactive-bar'}
                             ${isStart ? 'bar-start' : ''}
                             ${isEnd ? 'bar-end' : ''}"
-             style="background: var(--c-cat-${colorClass});
-                    opacity: ${hasPost ? '1' : '0.25'}">
+             style="background: var(--c-cat-${colorClass})">
         </div>
       `;
     }).join('');
@@ -116,7 +85,6 @@ async function renderArchive() {
     `;
   }
 
-  // 프로젝트 범례 (선 색상 + 이름)
   const legend = activeProjects.map(p => {
     const colorClass = CATEGORY_CLASS[p.category] || 'jogak';
     return `
@@ -148,62 +116,23 @@ async function renderArchive() {
   }
 }
 
-  // 프로젝트 기간 바
-  const projectBars = projects
-    .filter(p => p.start_date <= end && p.deadline >= start)
-    .map(p => {
-      const colorClass = CATEGORY_CLASS[p.category] || 'jogak';
-      return `
-        <div class="project-period-bar">
-          <div class="period-color"
-               style="background: var(--c-cat-${colorClass})"></div>
-          <span class="period-name">${escapeHtml(p.name)}</span>
-          <span class="period-range">${p.start_date} — ${p.deadline}</span>
-        </div>
-      `;
-    }).join('');
-
-  container.innerHTML = `
-    <div class="archive-nav">
-      <button onclick="moveArchive(-1)">←</button>
-      <span>${monthLabel}</span>
-      <button onclick="moveArchive(1)">→</button>
-    </div>
-
-    <div class="cal-grid">${cells}</div>
-
-    ${projectBars ? `
-      <div class="project-period-list">${projectBars}</div>
-    ` : ''}
-
-    <div id="archive-detail"></div>
-  `;
-
-  // 선택된 날짜가 있으면 상세 표시
-  if (selectedDate && postByDate[selectedDate]) {
-    renderDateDetail(postByDate[selectedDate], projects);
-  }
-}
-
-async function selectDate(dateStr) {
-  // 같은 날짜 다시 클릭하면 닫기
+function selectDate(dateStr) {
   if (selectedDate === dateStr) {
     selectedDate = null;
-    await renderArchive();
+    renderArchive();
     return;
   }
-
   selectedDate = dateStr;
-  await renderArchive();
+  renderArchive();
 }
 
 function renderDateDetail(post, projects) {
-  const detail  = document.getElementById('archive-detail');
+  const detail = document.getElementById('archive-detail');
   if (!detail) return;
 
-  const project = projects.find(p => p.id === post.project_id);
-  const locked  = !isEditable(post);
-  const dateStr = getDateStr(post.created_at);
+  const project    = projects.find(p => p.id === post.project_id);
+  const locked     = !isEditable(post);
+  const dateStr    = getDateStr(post.created_at);
   const colorClass = project ? (CATEGORY_CLASS[project.category] || 'jogak') : 'jogak';
 
   detail.innerHTML = `
@@ -250,7 +179,6 @@ function renderDateDetail(post, projects) {
     </div>
   `;
 
-  // textarea 자동 높이
   if (!locked) {
     const ta = document.getElementById('detail-body');
     if (ta) {
@@ -263,39 +191,36 @@ function renderDateDetail(post, projects) {
     }
   }
 
-  // 스크롤
   detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-async function saveFromDetail(postId, projectId) {
+function saveFromDetail(postId, projectId) {
   const body = document.getElementById('detail-body')?.value.trim();
   if (!body) return;
 
   document.getElementById('detail-save-status').textContent = '저장 중...';
-  await updatePost(postId, projectId, body);
+  updatePost(postId, projectId, body);
   document.getElementById('detail-save-status').textContent = '저장됨';
   setTimeout(() => {
-    if (document.getElementById('detail-save-status')) {
-      document.getElementById('detail-save-status').textContent = '';
-    }
+    const el = document.getElementById('detail-save-status');
+    if (el) el.textContent = '';
   }, 2000);
 }
 
-async function moveArchive(dir) {
+function moveArchive(dir) {
   archiveMonth += dir;
   if (archiveMonth > 11) { archiveMonth = 0; archiveYear++; }
   if (archiveMonth < 0)  { archiveMonth = 11; archiveYear--; }
   selectedDate = null;
-  await renderArchive();
+  renderArchive();
 }
 
-// 기존 모달 방식 유지 (dashboard에서 호출)
 function openPost(post, locked) {
   const existing = document.getElementById('post-modal');
   if (existing) existing.remove();
 
-  const modal = document.createElement('div');
-  modal.id    = 'post-modal';
+  const modal     = document.createElement('div');
+  modal.id        = 'post-modal';
   modal.className = 'modal-overlay';
 
   modal.innerHTML = `
@@ -345,12 +270,12 @@ function openPost(post, locked) {
   requestAnimationFrame(() => modal.classList.add('open'));
 }
 
-async function saveFromModal(postId, projectId) {
+function saveFromModal(postId, projectId) {
   const body = document.getElementById('modal-body')?.value.trim();
   if (!body) return;
-  await updatePost(postId, projectId, body);
+  updatePost(postId, projectId, body);
   closeModal();
-  await renderArchive();
+  renderArchive();
 }
 
 function closeModal() {
