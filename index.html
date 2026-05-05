@@ -7,321 +7,57 @@
   <link rel="stylesheet" href="css/reset.css">
   <link rel="stylesheet" href="css/typography.css">
   <link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- 로그인 부분을 이걸로 교체 -->
+  <!-- 랜딩 -->
+  <div id="screen-landing">
+    <div id="landing-wrap">
 
-<!-- 랜딩 페이지 -->
-<div id="screen-landing">
-  <div id="landing-wrap">
+      <div id="landing-header">
+        <span id="landing-logo">원글보장</span>
+        <button id="btn-go-app" onclick="startApp()">시작하기</button>
+      </div>
 
-    <!-- 헤더 -->
-    <div id="landing-header">
-      <span id="landing-logo">원글보장</span>
-      <button id="btn-go-login" onclick="showAuthModal()">시작하기</button>
-    </div>
+      <div id="landing-hero">
+        <h1 id="landing-headline">글을<br>적금처럼 모으세요</h1>
+        <p id="landing-sub">매일 한 편씩 납입하면<br>마감일에 완성된 작품이 됩니다</p>
+        <button class="btn-hero" onclick="startApp()">무료로 시작하기 →</button>
+      </div>
 
-    <!-- 히어로 -->
-    <div id="landing-hero">
-      <h1 id="landing-headline">글을<br>적금처럼 모으세요</h1>
-      <p id="landing-sub">매일 한 편씩 납입하면<br>마감일에 완성된 작품이 됩니다</p>
-      <button class="btn-hero" onclick="showAuthModal()">무료로 시작하기 →</button>
-    </div>
+      <!-- 앱 미리보기 -->
+      <div id="landing-preview">
+        <!-- 대시보드 미리보기 — 기존 코드 유지 -->
+        <!-- 달력 미리보기 — 기존 코드 유지 -->
+      </div>
 
-    <!-- 앱 미리보기 -->
-    <div id="landing-preview">
-
-      <!-- 대시보드 미리보기 -->
-      <div class="preview-phone">
-        <div class="preview-bar">
-          <span class="preview-brand">원글보장</span>
+      <div id="landing-features">
+        <div class="landing-feature-card">
+          <div class="lf-icon">✍️</div>
+          <div class="lf-title">하루 한 번 납입</div>
+          <div class="lf-desc">하루가 지나면 수정·추가 불가.<br>그날의 글은 그날에만.</div>
         </div>
-
-        <div class="preview-total">
-          <div class="preview-total-label">총 누적 잔고</div>
-          <div class="preview-total-value">24,600<span>자</span></div>
-          <div class="preview-total-sub">123매 · 연속 7일</div>
+        <div class="landing-feature-card">
+          <div class="lf-icon">🎯</div>
+          <div class="lf-title">자동 목표 계산</div>
+          <div class="lf-desc">마감일까지 하루에 몇 자씩<br>써야 하는지 매일 알려줘요.</div>
         </div>
-
-        <div class="preview-section-label">진행 중인 적금</div>
-
-        <div class="preview-card">
-          <div class="preview-card-top">
-            <div>
-              <div class="preview-card-name">5월의 단편소설</div>
-              <div class="preview-card-cat cat-dan">단편</div>
-            </div>
-            <div class="preview-dday">D-18</div>
-          </div>
-          <div class="preview-progress-track">
-            <div class="preview-progress-fill" style="width: 32%"></div>
-          </div>
-          <div class="preview-progress-label">
-            <span>3,200자</span>
-            <span>32% · 10,000자 목표</span>
-          </div>
-          <div class="preview-daily">
-            <span>오늘 납입</span>
-            <span class="done">650자 ✓</span>
-          </div>
+        <div class="landing-feature-card">
+          <div class="lf-icon">📚</div>
+          <div class="lf-title">원고지 분류</div>
+          <div class="lf-desc">엽편·단편·중편·경장편·장편<br>목표 분량에 맞게 자동 분류.</div>
         </div>
-
-        <div class="preview-card">
-          <div class="preview-card-top">
-            <div>
-              <div class="preview-card-name">올해의 장편</div>
-              <div class="preview-card-cat cat-jang">장편</div>
-            </div>
-            <div class="preview-dday urgent">D-6</div>
-          </div>
-          <div class="preview-progress-track">
-            <div class="preview-progress-fill" style="width: 18%"></div>
-          </div>
-          <div class="preview-progress-label">
-            <span>25,200자</span>
-            <span>18% · 140,000자 목표</span>
-          </div>
-          <div class="preview-daily">
-            <span>오늘 납입</span>
-            <span>0자 / 목표 2,400자</span>
-          </div>
-        </div>
-
       </div>
 
-     <!-- 달력 미리보기 -->
-<div class="preview-phone">
-  <div class="preview-bar">
-    <span class="preview-brand">2026년 5월</span>
-  </div>
-
-  <div class="preview-cal-dows">
-    <span>일</span><span>월</span><span>화</span>
-    <span>수</span><span>목</span><span>금</span><span>토</span>
-  </div>
-
-  <div class="preview-cal-grid">
-
-    <!-- 빈 칸 -->
-    <div class="pcell"></div>
-    <div class="pcell"></div>
-    <div class="pcell"></div>
-
-    <!-- 1일 -->
-    <div class="pcell">
-      <span>1</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
+      <div id="landing-cta">
+        <button class="btn-hero" onclick="startApp()">지금 바로 시작하기 →</button>
+        <p>무료 · 가입 없이 바로 사용</p>
       </div>
-    </div>
 
-    <!-- 2일 — 글 씀 (단편) -->
-    <div class="pcell done-cell">
-      <span>2</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:1"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
-      </div>
-    </div>
-
-    <!-- 3일 — 글 씀 (장편) -->
-    <div class="pcell done-cell">
-      <span>3</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:1"></div>
-      </div>
-    </div>
-
-    <!-- 4일 -->
-    <div class="pcell">
-      <span>4</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
-      </div>
-    </div>
-
-    <!-- 5일 — 글 씀 (단편) -->
-    <div class="pcell done-cell">
-      <span>5</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:1"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
-      </div>
-    </div>
-
-    <!-- 6일 — 글 씀 (단편) -->
-    <div class="pcell done-cell">
-      <span>6</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:1"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
-      </div>
-    </div>
-
-    <!-- 7일 -->
-    <div class="pcell">
-      <span>7</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
-      </div>
-    </div>
-
-    <!-- 8일 — 글 씀 (장편) -->
-    <div class="pcell done-cell">
-      <span>8</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:1"></div>
-      </div>
-    </div>
-
-    <!-- 9일 — 글 씀 (단편) -->
-    <div class="pcell done-cell">
-      <span>9</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:1"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
-      </div>
-    </div>
-
-    <!-- 10일 -->
-    <div class="pcell">
-      <span>10</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
-      </div>
-    </div>
-
-    <!-- 11일 -->
-    <div class="pcell">
-      <span>11</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
-      </div>
-    </div>
-
-    <!-- 12일 — 글 씀 (장편) -->
-    <div class="pcell done-cell">
-      <span>12</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:1"></div>
-      </div>
-    </div>
-
-    <!-- 13일 — 오늘 -->
-    <div class="pcell today-cell">
-      <span>13</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
-      </div>
-    </div>
-
-    <!-- 14~18일 -->
-    <div class="pcell"><span>14</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
-      </div>
-    </div>
-    <div class="pcell"><span>15</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
-      </div>
-    </div>
-    <div class="pcell"><span>16</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
-      </div>
-    </div>
-    <div class="pcell"><span>17</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
-      </div>
-    </div>
-    <div class="pcell"><span>18</span>
-      <div class="pcell-bars">
-        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
-        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- 범례 -->
-  <div class="preview-period-list">
-    <div class="preview-period">
-      <div class="period-dot" style="background:var(--c-cat-dan)"></div>
-      <span>5월의 단편소설</span>
-      <span class="period-range">05-01 — 05-31</span>
-    </div>
-    <div class="preview-period">
-      <div class="period-dot" style="background:var(--c-cat-jang)"></div>
-      <span>올해의 장편</span>
-      <span class="period-range">01-01 — 12-31</span>
+      <div id="landing-footer">© 2026 원글보장</div>
     </div>
   </div>
-
-</div>
-
-    <!-- 기능 소개 -->
-    <div id="landing-features">
-      <div class="landing-feature-card">
-        <div class="lf-icon">📝</div>
-        <div class="lf-title">하루 한 번 납입</div>
-        <div class="lf-desc">하루가 지나면 수정·추가 불가.<br>그날의 글은 그날에만.</div>
-      </div>
-      <div class="landing-feature-card">
-        <div class="lf-icon">🎯</div>
-        <div class="lf-title">자동 목표 계산</div>
-        <div class="lf-desc">마감일까지 하루에 몇 자씩<br>써야 하는지 매일 알려줘요.</div>
-      </div>
-      <div class="landing-feature-card">
-        <div class="lf-icon">📚</div>
-        <div class="lf-title">원고지 분류</div>
-        <div class="lf-desc">엽편·단편·중편·경장편·장편<br>목표 분량에 맞게 자동 분류.</div>
-      </div>
-    </div>
-
-    <!-- 하단 CTA -->
-    <div id="landing-cta">
-      <button class="btn-hero" onclick="showAuthModal()">지금 바로 시작하기 →</button>
-      <p>무료 · 가입 즉시 사용 가능</p>
-    </div>
-
-    <div id="landing-footer">© 2026 원글보장</div>
-
-  </div>
-</div>
-<!-- 로그인 모달 -->
-<div id="auth-modal" hidden>
-  <div id="auth-modal-inner">
-    <button class="modal-close" onclick="hideAuthModal()">✕</button>
-    <div id="auth-logo">원글보장</div>
-
-    <div id="auth-tabs">
-      <button class="auth-tab active" onclick="switchAuthTab('login')">로그인</button>
-      <button class="auth-tab" onclick="switchAuthTab('signup')">회원가입</button>
-    </div>
-
-    <input id="auth-email"    type="email"    placeholder="이메일" />
-    <input id="auth-password" type="password" placeholder="비밀번호" />
-    <button id="btn-auth-submit" onclick="handleAuthSubmit()">로그인</button>
-    <div id="auth-message"></div>
-  </div>
-</div>
 
   <!-- 앱 -->
   <div id="app" hidden>
@@ -330,6 +66,7 @@
       <button data-screen="editor">쓰기</button>
       <button data-screen="archive">기록</button>
       <button data-screen="stats">통계</button>
+      <button data-screen="settings">설정</button>
     </nav>
 
     <main>
@@ -337,19 +74,19 @@
       <section id="screen-editor"   hidden></section>
       <section id="screen-archive"  hidden></section>
       <section id="screen-stats"    hidden></section>
+      <section id="screen-settings" hidden></section>
     </main>
   </div>
 
-  <!-- 이 순서가 정확해야 해요 -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
-<script src="js/storage.js"></script>   <!-- supabase 객체 여기서 생성 -->
-<script src="js/utils.js"></script>
-<script src="js/project.js"></script>
-<script src="js/editor.js"></script>
-<script src="js/archive.js"></script>
-<script src="js/stats.js"></script>
-<script src="js/dashboard.js"></script>
-<script src="js/app.js"></script>       <!-- 여기서 supabase 사용 -->
+  <script src="js/utils.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/backup.js"></script>
+  <script src="js/project.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/archive.js"></script>
+  <script src="js/stats.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
