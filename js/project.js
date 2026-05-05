@@ -109,7 +109,7 @@ function updateDailyPreview() {
   `;
 }
 
-async function submitNewProject() {
+function submitNewProject() {
   const name     = document.getElementById('proj-name').value.trim();
   const chars    = Number(document.getElementById('proj-chars').value);
   const start    = document.getElementById('proj-start').value;
@@ -120,18 +120,18 @@ async function submitNewProject() {
   if (!deadline) return alert('마감일을 입력해주세요.');
 
   const cat = getCategory(chars);
-
-  await createProject(name, cat.name, start, deadline, chars);
-  await initDashboard();
+  createProject(name, cat.name, start, deadline, chars);
+  initDashboard();
 }
 
-async function openProjectDetail(projectId) {
-  const project = await getProject(projectId);
-  const written = await getProjectWrittenChars(projectId);
+function openProjectDetail(projectId) {
+  const project = getProject(projectId);
+  const written = getProjectWrittenChars(projectId);
   const daily   = calcDailyTarget(project.target_chars, written, project.deadline);
   const daysLeft = getDaysLeft(project.deadline);
   const progress = calcProgress(written, project.target_chars);
-  const posts    = await getPostsByProject(projectId);
+  const posts    = getPostsByProject(projectId);
+  const catClass = getCatClass(project.category);
 
   const container = document.getElementById('screen-dashboard');
   container.innerHTML = `
@@ -141,7 +141,7 @@ async function openProjectDetail(projectId) {
     </div>
 
     <div class="project-detail-hero">
-      <div class="cat-badge getCatClass(project.category">${getCatClass(project.category)}</div>
+      <div class="cat-badge ${catClass}">${project.category}</div>
       <h2 class="project-detail-name">${escapeHtml(project.name)}</h2>
       <div class="project-meta-row">
         ${project.start_date} — ${project.deadline} · D-${daysLeft}
@@ -187,4 +187,90 @@ async function openProjectDetail(projectId) {
       }
     </div>
   `;
+}
+
+function showEditProjectForm(projectId) {
+  const project  = getProject(projectId);
+  const container = document.getElementById('screen-dashboard');
+
+  container.innerHTML = `
+    <div class="form-header">
+      <button class="back-btn" onclick="openProjectDetail('${projectId}')">← 취소</button>
+      <span>프로젝트 수정</span>
+    </div>
+
+    <div class="form-body">
+
+      <div class="form-group">
+        <label>프로젝트 이름</label>
+        <input type="text" id="proj-name" value="${escapeHtml(project.name)}" />
+      </div>
+
+      <div class="form-group">
+        <label>목표 글자 수</label>
+        <input type="number" id="proj-chars" value="${project.target_chars}"
+               oninput="onCharsInput()" />
+        <div class="char-pad">
+          <button onclick="appendZeros('proj-chars', 2, onCharsInput)">00</button>
+          <button onclick="appendZeros('proj-chars', 3, onCharsInput)">000</button>
+          <button onclick="appendZeros('proj-chars', 4, onCharsInput)">0000</button>
+        </div>
+        <div id="category-display"></div>
+      </div>
+
+      <div class="form-group">
+        <label>시작일</label>
+        <input type="date" id="proj-start" value="${project.start_date}" />
+      </div>
+
+      <div class="form-group">
+        <label>마감일</label>
+        <input type="date" id="proj-deadline" value="${project.deadline}"
+               oninput="onDeadlineInput()" />
+      </div>
+
+      <div id="daily-preview"></div>
+
+      <button class="btn-primary" onclick="submitEditProject('${projectId}')">저장하기</button>
+      <button class="settings-btn danger-btn"
+              onclick="confirmDeleteProject('${projectId}')">
+        프로젝트 삭제
+      </button>
+    </div>
+  `;
+
+  // 현재 값으로 카테고리 미리 표시
+  onCharsInput();
+  onDeadlineInput();
+}
+
+function submitEditProject(projectId) {
+  const name     = document.getElementById('proj-name').value.trim();
+  const chars    = Number(document.getElementById('proj-chars').value);
+  const start    = document.getElementById('proj-start').value;
+  const deadline = document.getElementById('proj-deadline').value;
+
+  if (!name)     return alert('프로젝트 이름을 입력해주세요.');
+  if (!chars)    return alert('목표 글자 수를 입력해주세요.');
+  if (!deadline) return alert('마감일을 입력해주세요.');
+
+  const cat = getCategory(chars);
+  updateProject(projectId, {
+    name,
+    category:     cat.name,
+    start_date:   start,
+    deadline,
+    target_chars: chars
+  });
+  openProjectDetail(projectId);
+}
+
+function confirmDeleteProject(projectId) {
+  const project = getProject(projectId);
+  const confirmed = confirm(
+    `"${project.name}" 프로젝트를 삭제할까요?\n글은 삭제되지 않아요.`
+  );
+  if (!confirmed) return;
+  deleteProject(projectId);
+  initDashboard();
 }
