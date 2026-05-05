@@ -38,7 +38,38 @@ async function renderArchive() {
   const lastDate   = new Date(archiveYear, archiveMonth + 1, 0).getDate();
   const dows       = ['일', '월', '화', '수', '목', '금', '토'];
 
-  // 달력 셀
+  async function renderArchive() {
+  const container = document.getElementById('screen-archive');
+  const { start, end } = getMonthRange(archiveYear, archiveMonth);
+
+  const [posts, projects] = await Promise.all([
+    getPostsByDateRange(start, end),
+    getAllProjects()
+  ]);
+
+  const postByDate = {};
+  posts.forEach(p => { postByDate[getDateStr(p.created_at)] = p; });
+
+  const doneByDate = {};
+  await Promise.all(posts.map(async p => {
+    const d       = getDateStr(p.created_at);
+    const project = projects.find(pr => pr.id === p.project_id);
+    if (!project) return;
+    const written = await getProjectWrittenChars(project.id);
+    const daily   = calcDailyTarget(project.target_chars, written, project.deadline);
+    doneByDate[d] = p.char_count >= daily;
+  }));
+
+  const monthLabel = formatMonthLabel(start);
+  const firstDay   = new Date(archiveYear, archiveMonth, 1).getDay();
+  const lastDate   = new Date(archiveYear, archiveMonth + 1, 0).getDate();
+  const dows       = ['일', '월', '화', '수', '목', '금', '토'];
+
+  // 이 달에 걸쳐있는 프로젝트 목록 (최대 3개)
+  const activeProjects = projects
+    .filter(p => p.start_date <= end && p.deadline >= start)
+    .slice(0, 3);
+
   let cells = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
 
   for (let i = 0; i < firstDay; i++) {
@@ -46,28 +77,75 @@ async function renderArchive() {
   }
 
   for (let d = 1; d <= lastDate; d++) {
-  const dateStr = `${archiveYear}-${String(archiveMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-  const post    = postByDate[dateStr];
-  const done    = doneByDate[dateStr];
-  const isToday = dateStr === getToday();
-  const isSelected = dateStr === selectedDate;
-  const project = post ? projects.find(p => p.id === post.project_id) : null;
-  const colorClass = project ? (CATEGORY_CLASS[project.category] || 'jogak') : null;
+    const dateStr    = `${archiveYear}-${String(archiveMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const post       = postByDate[dateStr];
+    const done       = doneByDate[dateStr];
+    const isToday    = dateStr === getToday();
+    const isSelected = dateStr === selectedDate;
 
-  cells += `
-    <div class="cal-cell
-      ${post ? 'has-post' : ''}
-      ${isToday ? 'today' : ''}
-      ${done ? 'done' : ''}
-      ${isSelected ? 'selected' : ''}"
-      onclick="selectDate('${dateStr}')">
-      <span class="cal-date">${d}</span>
-      <div class="cal-dot ${colorClass ? '' : 'empty-dot'}"
-           ${colorClass ? `style="background: var(--c-cat-${colorClass})"` : ''}>
+    // 이 날짜에 해당하는 프로젝트 바 (최대 3개)
+    const bars = activeProjects.map(p => {
+      const inRange  = dateStr >= p.start_date && dateStr <= p.deadline;
+      const isStart  = dateStr === p.start_date;
+      const isEnd    = dateStr === p.deadline;
+      const hasPost  = post && post.project_id === p.id;
+      const colorClass = CATEGORY_CLASS[p.category] || 'jogak';
+
+      if (!inRange) return `<div class="cal-bar empty-bar"></div>`;
+
+      return `
+        <div class="cal-bar ${hasPost ? 'active-bar' : 'inactive-bar'}
+                            ${isStart ? 'bar-start' : ''}
+                            ${isEnd ? 'bar-end' : ''}"
+             style="background: var(--c-cat-${colorClass});
+                    opacity: ${hasPost ? '1' : '0.25'}">
+        </div>
+      `;
+    }).join('');
+
+    cells += `
+      <div class="cal-cell
+        ${post ? 'has-post' : ''}
+        ${isToday ? 'today' : ''}
+        ${done ? 'done' : ''}
+        ${isSelected ? 'selected' : ''}"
+        onclick="selectDate('${dateStr}')">
+        <span class="cal-date">${d}</span>
+        <div class="cal-bars">${bars}</div>
       </div>
-      ${post ? `<div class="cal-chars">${post.char_count.toLocaleString()}</div>` : ''}
+    `;
+  }
+
+  // 프로젝트 범례 (선 색상 + 이름)
+  const legend = activeProjects.map(p => {
+    const colorClass = CATEGORY_CLASS[p.category] || 'jogak';
+    return `
+      <div class="project-period-bar">
+        <div class="period-color"
+             style="background: var(--c-cat-${colorClass})"></div>
+        <span class="period-name">${escapeHtml(p.name)}</span>
+        <span class="period-range">${p.start_date} — ${p.deadline}</span>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="archive-nav">
+      <button onclick="moveArchive(-1)">←</button>
+      <span>${monthLabel}</span>
+      <button onclick="moveArchive(1)">→</button>
     </div>
+
+    <div class="cal-grid">${cells}</div>
+
+    ${legend ? `<div class="project-period-list">${legend}</div>` : ''}
+
+    <div id="archive-detail"></div>
   `;
+
+  if (selectedDate && postByDate[selectedDate]) {
+    renderDateDetail(postByDate[selectedDate], projects);
+  }
 }
 
   // 프로젝트 기간 바
