@@ -1,13 +1,13 @@
-async function initStats() {
+function initStats() {
   const now = new Date();
   const container = document.getElementById('screen-stats');
   container.innerHTML = `<div class="loading">불러오는 중...</div>`;
 
   const year        = now.getFullYear();
   const month       = now.getMonth();
-  const yearlyData  = await getYearlyStats(year);
-  const monthlyData = await getMonthlyStats(year, month);
-  const streak      = await getStreak();
+  const yearlyData  = getYearlyStats(year);
+  const monthlyData = getMonthlyStats(year, month);
+  const streak      = getStreak();
 
   const maxMonthly = Math.max(...yearlyData, 1);
   const months     = ['1월','2월','3월','4월','5월','6월',
