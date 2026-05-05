@@ -54,7 +54,7 @@ async function renderArchive() {
            onclick="${post ? `openArchivePost('${post.id}')` : ''}">
         <span class="cal-date">${d}</span>
         ${post ? `
-          <div class="cal-dot" style="background: var(--c-cat-${project?.category || '조각글'})"></div>
+          <div class="cal-dot" style="background: var(--c-getCatClass(project?.category || '조각글'))"></div>
           <div class="cal-chars">${post.char_count.toLocaleString()}</div>
         ` : '<div class="cal-dot empty-dot"></div>'}
       </div>
@@ -66,7 +66,7 @@ async function renderArchive() {
     .filter(p => p.start_date <= end && p.deadline >= start)
     .map(p => `
       <div class="project-period-bar">
-        <div class="period-color" style="background: var(--c-cat-${p.category})"></div>
+        <div class="period-color" style="background: var(--c-getCatClass(p.category))"></div>
         <span class="period-name">${escapeHtml(p.name)}</span>
         <span class="period-range">${p.start_date} — ${p.deadline}</span>
       </div>
