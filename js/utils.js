@@ -94,3 +94,16 @@ function appendZeros(inputId, count, onInput) {
   input.value = (input.value || '') + '0'.repeat(count);
   if (onInput) onInput();
 }
+
+const CATEGORY_CLASS = {
+  '조각글': 'jogak',
+  '엽편':   'yeop',
+  '단편':   'dan',
+  '중편':   'jung',
+  '경장편': 'kyung',
+  '장편':   'jang',
+};
+
+function getCatClass(categoryName) {
+  return 'cat-' + (CATEGORY_CLASS[categoryName] || 'jogak');
+}
