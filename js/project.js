@@ -1,86 +1,158 @@
+// ── 적금 개설 폼 ──────────────────────────────
+
 function showNewProjectForm() {
   const container = document.getElementById('screen-dashboard');
   container.innerHTML = `
-    <div class="form-header">
+    <div class="form-page-header">
       <button class="back-btn" onclick="initDashboard()">← 취소</button>
-      <span>새 적금 만들기</span>
+      <span class="form-page-title">새 적금 개설</span>
     </div>
 
-    <div class="form-body">
+    <div class="form-section">
+      <label class="form-label">적금 이름</label>
+      <input class="form-input" type="text" id="proj-name"
+             placeholder="예: 5월의 단편소설" />
+    </div>
 
-      <div class="form-group">
-        <label>프로젝트 이름</label>
-        <input type="text" id="proj-name" placeholder="예: 5월의 단편" />
-      </div>
-
-      <div class="form-group">
-        <label>목표 글자 수</label>
-        <div class="char-input-row">
-          <input type="number" id="proj-chars" placeholder="0"
-                 oninput="onCharsInput()" />
-        </div>
+    <div class="form-section">
+      <label class="form-label">목표 글자 수</label>
+      <div class="char-input-wrap">
+        <input class="form-input" type="number" id="proj-chars"
+               placeholder="0" oninput="onCharsInput()" />
         <div class="char-pad">
-          <button onclick="appendZeros('proj-chars', 2, onCharsInput)">00</button>
-          <button onclick="appendZeros('proj-chars', 3, onCharsInput)">000</button>
-          <button onclick="appendZeros('proj-chars', 4, onCharsInput)">0000</button>
+          <button class="char-pad-btn"
+                  onclick="appendZeros('proj-chars', 2, onCharsInput)">00</button>
+          <button class="char-pad-btn"
+                  onclick="appendZeros('proj-chars', 3, onCharsInput)">000</button>
+          <button class="char-pad-btn"
+                  onclick="appendZeros('proj-chars', 4, onCharsInput)">0000</button>
         </div>
         <div id="category-display"></div>
       </div>
-
-      <div class="form-group">
-        <label>시작일</label>
-        <input type="date" id="proj-start" value="${getToday()}" />
-      </div>
-
-      <div class="form-group">
-        <label>마감일</label>
-        <input type="date" id="proj-deadline" min="${getToday()}"
-               oninput="onDeadlineInput()" />
-      </div>
-
-      <div id="daily-preview"></div>
-
-      <button class="btn-primary" onclick="submitNewProject()">적금 개설하기</button>
     </div>
+
+    <div class="form-section">
+      <label class="form-label">시작일</label>
+      <input class="form-input" type="date" id="proj-start"
+             value="${getToday()}" />
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">마감일</label>
+      <input class="form-input" type="date" id="proj-deadline"
+             min="${getToday()}" oninput="onDeadlineInput()" />
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">납입 요일</label>
+      <div class="day-selector" id="day-selector">
+        <button class="day-btn everyday selected" data-day="all"
+                onclick="toggleDay('all')">매일</button>
+        ${['일','월','화','수','목','금','토'].map((d, i) => `
+          <button class="day-btn" data-day="${i}"
+                  onclick="toggleDay(${i})">${d}</button>
+        `).join('')}
+      </div>
+      <div id="write-days-preview"
+           style="font-family:var(--font-sans);font-size:var(--text-xs);
+                  color:var(--c-muted);margin-top:var(--space-sm)">
+        매일 납입
+      </div>
+    </div>
+
+    <div id="deposit-preview"></div>
+
+    <button class="submit-btn" onclick="submitNewProject()">
+      적금 개설하기
+    </button>
   `;
+
+  // 요일 선택 상태
+  window._selectedDays = [];
 }
+
+// ── 요일 토글 ─────────────────────────────────
+
+function toggleDay(day) {
+  if (day === 'all') {
+    window._selectedDays = [];
+    document.querySelectorAll('.day-btn').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.day === 'all');
+    });
+  } else {
+    const allBtn = document.querySelector('.day-btn.everyday');
+    allBtn.classList.remove('selected');
+
+    const idx = window._selectedDays.indexOf(day);
+    if (idx > -1) {
+      window._selectedDays.splice(idx, 1);
+    } else {
+      window._selectedDays.push(day);
+    }
+
+    // 정렬
+    window._selectedDays.sort((a, b) => a - b);
+
+    document.querySelectorAll('.day-btn:not(.everyday)').forEach(btn => {
+      btn.classList.toggle('selected',
+        window._selectedDays.includes(Number(btn.dataset.day))
+      );
+    });
+
+    // 아무것도 선택 안 하면 매일로
+    if (window._selectedDays.length === 0) {
+      allBtn.classList.add('selected');
+    }
+  }
+
+  updateWriteDaysPreview();
+  updateDepositPreview();
+}
+
+function updateWriteDaysPreview() {
+  const el = document.getElementById('write-days-preview');
+  if (!el) return;
+  el.textContent = getWriteDaysLabel(window._selectedDays) + ' 납입';
+}
+
+// ── 글자 수 입력 ──────────────────────────────
 
 function onCharsInput() {
   const input   = document.getElementById('proj-chars');
   const display = document.getElementById('category-display');
-
   if (!input || !display) return;
 
   const chars = Number(input.value);
-
   if (!chars || chars <= 0) {
     display.innerHTML = '';
-    updateDailyPreview();
+    updateDepositPreview();
     return;
   }
 
   const pages = charsToPages(chars);
   const cat   = getCategory(chars);
+  const cls   = getCatClass(cat.name);
 
   display.innerHTML = `
-    <div class="category-badge">
-      <span class="category-name ${getCatClass(cat.name)}">${cat.name}</span>
-      <span class="category-detail">${chars.toLocaleString()}자 · ${pages}매 · ${cat.desc}</span>
+    <div class="category-result">
+      <span class="category-result-name ${cls}">${cat.name}</span>
+      <span class="category-result-detail">
+        ${chars.toLocaleString()}자 · ${pages}매 · ${cat.desc}
+      </span>
     </div>
   `;
 
-  updateDailyPreview();
+  updateDepositPreview();
 }
 
 function onDeadlineInput() {
-  updateDailyPreview();
+  updateDepositPreview();
 }
 
-function updateDailyPreview() {
+function updateDepositPreview() {
   const chars    = Number(document.getElementById('proj-chars')?.value || 0);
   const deadline = document.getElementById('proj-deadline')?.value;
-  const preview  = document.getElementById('daily-preview');
-
+  const preview  = document.getElementById('deposit-preview');
   if (!preview) return;
 
   if (!chars || !deadline) {
@@ -88,26 +160,30 @@ function updateDailyPreview() {
     return;
   }
 
-  const daily    = calcDailyTarget(chars, 0, deadline);
-  const daysLeft = getDaysLeft(deadline);
+  const writeDays = window._selectedDays || [];
+  const daily     = calcDailyTarget(chars, 0, deadline, writeDays);
+  const days      = countRemainingWritableDays(deadline, writeDays);
+  const pages     = charsToPages(daily);
 
   preview.innerHTML = `
-    <div class="daily-preview-card">
-      <div class="daily-preview-row">
-        <span>납입 기간</span>
-        <span>${daysLeft}일</span>
+    <div class="deposit-preview">
+      <div class="deposit-preview-row">
+        <span>납입 가능 일수</span>
+        <span>${days}일</span>
       </div>
-      <div class="daily-preview-row">
-        <span>하루 납입액</span>
+      <div class="deposit-preview-row">
+        <span>하루 납입 목표</span>
         <span><strong>${daily.toLocaleString()}자</strong></span>
       </div>
-      <div class="daily-preview-row">
-        <span>원고지</span>
-        <span>${charsToPages(daily)}매 / 일</span>
+      <div class="deposit-preview-row">
+        <span>원고지 환산</span>
+        <span>${pages}매 / 일</span>
       </div>
     </div>
   `;
 }
+
+// ── 적금 개설 제출 ────────────────────────────
 
 function submitNewProject() {
   const name     = document.getElementById('proj-name').value.trim();
@@ -115,131 +191,206 @@ function submitNewProject() {
   const start    = document.getElementById('proj-start').value;
   const deadline = document.getElementById('proj-deadline').value;
 
-  if (!name)     return alert('프로젝트 이름을 입력해주세요.');
+  if (!name)     return alert('적금 이름을 입력해주세요.');
   if (!chars)    return alert('목표 글자 수를 입력해주세요.');
   if (!deadline) return alert('마감일을 입력해주세요.');
+  if (deadline < start) return alert('마감일이 시작일보다 앞입니다.');
 
-  const cat = getCategory(chars);
-  createProject(name, cat.name, start, deadline, chars);
+  const cat       = getCategory(chars);
+  const writeDays = window._selectedDays || [];
+
+  createProject(name, cat.name, start, deadline, chars, writeDays);
   initDashboard();
 }
 
+// ── 적금 상세 ─────────────────────────────────
+
 function openProjectDetail(projectId) {
-  const project = getProject(projectId);
-  const written = getProjectWrittenChars(projectId);
-  const daily   = calcDailyTarget(project.target_chars, written, project.deadline);
+  const project  = getProject(projectId);
+  const written  = getProjectWrittenChars(projectId);
+  const daily    = calcDailyTarget(
+    project.target_chars, written, project.deadline, project.write_days
+  );
   const daysLeft = getDaysLeft(project.deadline);
   const progress = calcProgress(written, project.target_chars);
   const posts    = getPostsByProject(projectId);
   const catClass = getCatClass(project.category);
+  const writeDaysLabel = getWriteDaysLabel(project.write_days);
+
+  // 날짜 범위 생성 (시작일~오늘 또는 마감일 중 작은 것)
+  const rangeEnd = project.deadline < getToday() ? project.deadline : getToday();
+  const allDates = dateRange(project.start_date, rangeEnd).reverse();
+
+  const depositRows = allDates.map(dateStr => {
+    const post       = getPostByDateAndProject(dateStr, projectId);
+    const dayOfWeek  = new Date(dateStr + 'T00:00:00').getDay();
+    const isWritable = !project.write_days || project.write_days.length === 0
+      || project.write_days.includes(dayOfWeek);
+
+    if (!isWritable) return ''; // 납입 요일 아니면 표시 안 함
+
+    if (post) {
+      const achieved = post.char_count >= daily;
+      return `
+        <div class="deposit-row"
+             onclick="openPost('${post.id}', ${!isEditable(post)})">
+          <span class="deposit-row-date">${dateStr.slice(5)}</span>
+          <span class="deposit-row-chars">${post.char_count.toLocaleString()}자</span>
+          <span class="deposit-row-status ${achieved ? 'achieved' : 'missed'}">
+            ${achieved ? '✓ 달성' : '✗ 미달'}
+          </span>
+        </div>
+      `;
+    } else if (dateStr < getToday()) {
+      return `
+        <div class="deposit-row">
+          <span class="deposit-row-date">${dateStr.slice(5)}</span>
+          <span class="deposit-row-chars" style="color:var(--c-muted)">—</span>
+          <span class="deposit-row-status skipped">미납</span>
+        </div>
+      `;
+    }
+    return '';
+  }).filter(Boolean).join('');
 
   const container = document.getElementById('screen-dashboard');
   container.innerHTML = `
-    <div class="form-header">
+    <div class="form-page-header">
       <button class="back-btn" onclick="initDashboard()">← 목록</button>
       <button class="text-btn" onclick="showEditProjectForm('${projectId}')">수정</button>
     </div>
 
-    <div class="project-detail-hero">
-      <div class="cat-badge ${catClass}">${project.category}</div>
-      <h2 class="project-detail-name">${escapeHtml(project.name)}</h2>
-      <div class="project-meta-row">
-        ${project.start_date} — ${project.deadline} · D-${daysLeft}
+    <div class="project-hero">
+      <div class="project-hero-category ${catClass}">${project.category}</div>
+      <h2 class="project-hero-name">${escapeHtml(project.name)}</h2>
+      <div class="project-hero-period">
+        ${project.start_date} — ${project.deadline}
+        · ${writeDaysLabel} 납입
+        · D-${daysLeft}
       </div>
     </div>
 
-    <div class="stat-grid">
+    <div class="stat-grid" style="margin-bottom:var(--space-lg)">
       <div class="stat-cell">
-        <div class="stat-label">누적 납입</div>
-        <div class="stat-value">${written.toLocaleString()}자</div>
+        <div class="stat-cell-label">누적 납입</div>
+        <div class="stat-cell-value">${written.toLocaleString()}자</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-label">달성률</div>
-        <div class="stat-value">${progress}%</div>
+        <div class="stat-cell-label">달성률</div>
+        <div class="stat-cell-value">${progress}%</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-label">하루 목표</div>
-        <div class="stat-value">${daily.toLocaleString()}자</div>
+        <div class="stat-cell-label">하루 목표</div>
+        <div class="stat-cell-value">${daily.toLocaleString()}자</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-label">남은 분량</div>
-        <div class="stat-value">${Math.max(0, project.target_chars - written).toLocaleString()}자</div>
+        <div class="stat-cell-label">잔여 분량</div>
+        <div class="stat-cell-value">
+          ${Math.max(0, project.target_chars - written).toLocaleString()}자
+        </div>
       </div>
     </div>
 
-    <div class="progress-bar large">
-      <div class="progress-fill" style="width:${progress}%"></div>
+    <div class="progress-track" style="margin-bottom:var(--space-xl)">
+      <div class="progress-fill ${progress >= 100 ? 'complete' : ''}"
+           style="width:${progress}%"></div>
     </div>
 
-    <div class="section-header" style="margin-top: var(--space-xl)">
-      <span>납입 내역</span>
+    <div class="section-header">
+      <span class="section-title">납입 내역</span>
     </div>
 
-    <div class="post-list">
-      ${posts.length
-        ? posts.map(p => `
-          <div class="post-row" onclick="openPost('${p.id}', ${!isEditable(p)})">
-            <span class="post-row-date">${getDateStr(p.created_at)}</span>
-            <span class="post-row-chars">${p.char_count.toLocaleString()}자</span>
-            ${isEditable(p) ? '<span class="badge-editable">수정 가능</span>' : ''}
-          </div>`).join('')
-        : '<div class="empty-state">아직 납입 내역이 없어요.</div>'
-      }
+    <div class="deposit-list">
+      ${depositRows || `
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          아직 납입 내역이 없어요.
+        </div>
+      `}
     </div>
   `;
 }
 
+// ── 적금 수정 폼 ──────────────────────────────
+
 function showEditProjectForm(projectId) {
-  const project  = getProject(projectId);
+  const project   = getProject(projectId);
   const container = document.getElementById('screen-dashboard');
 
+  window._selectedDays = project.write_days ? [...project.write_days] : [];
+
   container.innerHTML = `
-    <div class="form-header">
-      <button class="back-btn" onclick="openProjectDetail('${projectId}')">← 취소</button>
-      <span>프로젝트 수정</span>
+    <div class="form-page-header">
+      <button class="back-btn"
+              onclick="openProjectDetail('${projectId}')">← 취소</button>
+      <span class="form-page-title">적금 수정</span>
     </div>
 
-    <div class="form-body">
+    <div class="form-section">
+      <label class="form-label">적금 이름</label>
+      <input class="form-input" type="text" id="proj-name"
+             value="${escapeHtml(project.name)}" />
+    </div>
 
-      <div class="form-group">
-        <label>프로젝트 이름</label>
-        <input type="text" id="proj-name" value="${escapeHtml(project.name)}" />
-      </div>
-
-      <div class="form-group">
-        <label>목표 글자 수</label>
-        <input type="number" id="proj-chars" value="${project.target_chars}"
-               oninput="onCharsInput()" />
+    <div class="form-section">
+      <label class="form-label">목표 글자 수</label>
+      <div class="char-input-wrap">
+        <input class="form-input" type="number" id="proj-chars"
+               value="${project.target_chars}" oninput="onCharsInput()" />
         <div class="char-pad">
-          <button onclick="appendZeros('proj-chars', 2, onCharsInput)">00</button>
-          <button onclick="appendZeros('proj-chars', 3, onCharsInput)">000</button>
-          <button onclick="appendZeros('proj-chars', 4, onCharsInput)">0000</button>
+          <button class="char-pad-btn"
+                  onclick="appendZeros('proj-chars', 2, onCharsInput)">00</button>
+          <button class="char-pad-btn"
+                  onclick="appendZeros('proj-chars', 3, onCharsInput)">000</button>
+          <button class="char-pad-btn"
+                  onclick="appendZeros('proj-chars', 4, onCharsInput)">0000</button>
         </div>
         <div id="category-display"></div>
       </div>
-
-      <div class="form-group">
-        <label>시작일</label>
-        <input type="date" id="proj-start" value="${project.start_date}" />
-      </div>
-
-      <div class="form-group">
-        <label>마감일</label>
-        <input type="date" id="proj-deadline" value="${project.deadline}"
-               oninput="onDeadlineInput()" />
-      </div>
-
-      <div id="daily-preview"></div>
-
-      <button class="btn-primary" onclick="submitEditProject('${projectId}')">저장하기</button>
-      <button class="settings-btn danger-btn"
-              onclick="confirmDeleteProject('${projectId}')">
-        프로젝트 삭제
-      </button>
     </div>
+
+    <div class="form-section">
+      <label class="form-label">시작일</label>
+      <input class="form-input" type="date" id="proj-start"
+             value="${project.start_date}" />
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">마감일</label>
+      <input class="form-input" type="date" id="proj-deadline"
+             value="${project.deadline}" oninput="onDeadlineInput()" />
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">납입 요일</label>
+      <div class="day-selector" id="day-selector">
+        <button class="day-btn everyday ${window._selectedDays.length === 0 ? 'selected' : ''}"
+                data-day="all" onclick="toggleDay('all')">매일</button>
+        ${['일','월','화','수','목','금','토'].map((d, i) => `
+          <button class="day-btn ${window._selectedDays.includes(i) ? 'selected' : ''}"
+                  data-day="${i}" onclick="toggleDay(${i})">${d}</button>
+        `).join('')}
+      </div>
+      <div id="write-days-preview"
+           style="font-family:var(--font-sans);font-size:var(--text-xs);
+                  color:var(--c-muted);margin-top:var(--space-sm)">
+        ${getWriteDaysLabel(window._selectedDays)} 납입
+      </div>
+    </div>
+
+    <div id="deposit-preview"></div>
+
+    <button class="submit-btn" onclick="submitEditProject('${projectId}')">
+      저장하기
+    </button>
+
+    <button class="settings-btn danger"
+            style="margin-top:var(--space-md);width:100%"
+            onclick="confirmDeleteProject('${projectId}')">
+      적금 삭제
+    </button>
   `;
 
-  // 현재 값으로 카테고리 미리 표시
   onCharsInput();
   onDeadlineInput();
 }
@@ -250,27 +401,28 @@ function submitEditProject(projectId) {
   const start    = document.getElementById('proj-start').value;
   const deadline = document.getElementById('proj-deadline').value;
 
-  if (!name)     return alert('프로젝트 이름을 입력해주세요.');
+  if (!name)     return alert('적금 이름을 입력해주세요.');
   if (!chars)    return alert('목표 글자 수를 입력해주세요.');
   if (!deadline) return alert('마감일을 입력해주세요.');
 
-  const cat = getCategory(chars);
+  const cat       = getCategory(chars);
+  const writeDays = window._selectedDays || [];
+
   updateProject(projectId, {
     name,
     category:     cat.name,
     start_date:   start,
     deadline,
-    target_chars: chars
+    target_chars: chars,
+    write_days:   writeDays
   });
+
   openProjectDetail(projectId);
 }
 
 function confirmDeleteProject(projectId) {
   const project = getProject(projectId);
-  const confirmed = confirm(
-    `"${project.name}" 프로젝트를 삭제할까요?\n글은 삭제되지 않아요.`
-  );
-  if (!confirmed) return;
+  if (!confirm(`"${project.name}" 적금을 삭제할까요?\n글은 삭제되지 않아요.`)) return;
   deleteProject(projectId);
   initDashboard();
 }
