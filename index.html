@@ -91,86 +91,190 @@
 
       </div>
 
-      <!-- 달력 미리보기 -->
-      <div class="preview-phone">
-        <div class="preview-bar">
-          <span class="preview-brand">2026년 5월</span>
-        </div>
+     <!-- 달력 미리보기 -->
+<div class="preview-phone">
+  <div class="preview-bar">
+    <span class="preview-brand">2026년 5월</span>
+  </div>
 
-        <div class="preview-cal">
-          <div class="preview-cal-dows">
-            <span>일</span><span>월</span><span>화</span>
-            <span>수</span><span>목</span><span>금</span><span>토</span>
-          </div>
-          <div class="preview-cal-grid">
-            <!-- 1주 -->
-            <div class="pcell"></div>
-            <div class="pcell"></div>
-            <div class="pcell"></div>
-            <div class="pcell has">
-              <span>1</span><div class="pdot" style="background:var(--c-cat-dan)"></div>
-            </div>
-            <div class="pcell has done-cell">
-              <span>2</span><div class="pdot" style="background:var(--c-cat-dan)"></div>
-            </div>
-            <div class="pcell has done-cell">
-              <span>3</span><div class="pdot" style="background:var(--c-cat-jang)"></div>
-            </div>
-            <div class="pcell">
-              <span>4</span><div class="pdot empty"></div>
-            </div>
-            <!-- 2주 -->
-            <div class="pcell has done-cell">
-              <span>5</span><div class="pdot" style="background:var(--c-cat-dan)"></div>
-            </div>
-            <div class="pcell has done-cell">
-              <span>6</span><div class="pdot" style="background:var(--c-cat-dan)"></div>
-            </div>
-            <div class="pcell has done-cell">
-              <span>7</span><div class="pdot" style="background:var(--c-cat-jang)"></div>
-            </div>
-            <div class="pcell has done-cell">
-              <span>8</span><div class="pdot" style="background:var(--c-cat-dan)"></div>
-            </div>
-            <div class="pcell has done-cell">
-              <span>9</span><div class="pdot" style="background:var(--c-cat-dan)"></div>
-            </div>
-            <div class="pcell">
-              <span>10</span><div class="pdot empty"></div>
-            </div>
-            <div class="pcell">
-              <span>11</span><div class="pdot empty"></div>
-            </div>
-            <!-- 3주 -->
-            <div class="pcell has done-cell">
-              <span>12</span><div class="pdot" style="background:var(--c-cat-jang)"></div>
-            </div>
-            <div class="pcell today-cell">
-              <span>13</span><div class="pdot empty"></div>
-            </div>
-            <div class="pcell"><span>14</span></div>
-            <div class="pcell"><span>15</span></div>
-            <div class="pcell"><span>16</span></div>
-            <div class="pcell"><span>17</span></div>
-            <div class="pcell"><span>18</span></div>
-          </div>
-        </div>
+  <div class="preview-cal-dows">
+    <span>일</span><span>월</span><span>화</span>
+    <span>수</span><span>목</span><span>금</span><span>토</span>
+  </div>
 
-        <div class="preview-period-list">
-          <div class="preview-period">
-            <div class="period-dot" style="background:var(--c-cat-dan)"></div>
-            <span>5월의 단편소설</span>
-            <span class="period-range">05-01 — 05-31</span>
-          </div>
-          <div class="preview-period">
-            <div class="period-dot" style="background:var(--c-cat-jang)"></div>
-            <span>올해의 장편</span>
-            <span class="period-range">01-01 — 12-31</span>
-          </div>
-        </div>
+  <div class="preview-cal-grid">
+
+    <!-- 빈 칸 -->
+    <div class="pcell"></div>
+    <div class="pcell"></div>
+    <div class="pcell"></div>
+
+    <!-- 1일 -->
+    <div class="pcell">
+      <span>1</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
       </div>
-
     </div>
+
+    <!-- 2일 — 글 씀 (단편) -->
+    <div class="pcell done-cell">
+      <span>2</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:1"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
+      </div>
+    </div>
+
+    <!-- 3일 — 글 씀 (장편) -->
+    <div class="pcell done-cell">
+      <span>3</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:1"></div>
+      </div>
+    </div>
+
+    <!-- 4일 -->
+    <div class="pcell">
+      <span>4</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
+      </div>
+    </div>
+
+    <!-- 5일 — 글 씀 (단편) -->
+    <div class="pcell done-cell">
+      <span>5</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:1"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
+      </div>
+    </div>
+
+    <!-- 6일 — 글 씀 (단편) -->
+    <div class="pcell done-cell">
+      <span>6</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:1"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
+      </div>
+    </div>
+
+    <!-- 7일 -->
+    <div class="pcell">
+      <span>7</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
+      </div>
+    </div>
+
+    <!-- 8일 — 글 씀 (장편) -->
+    <div class="pcell done-cell">
+      <span>8</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:1"></div>
+      </div>
+    </div>
+
+    <!-- 9일 — 글 씀 (단편) -->
+    <div class="pcell done-cell">
+      <span>9</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:1"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
+      </div>
+    </div>
+
+    <!-- 10일 -->
+    <div class="pcell">
+      <span>10</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
+      </div>
+    </div>
+
+    <!-- 11일 -->
+    <div class="pcell">
+      <span>11</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
+      </div>
+    </div>
+
+    <!-- 12일 — 글 씀 (장편) -->
+    <div class="pcell done-cell">
+      <span>12</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:1"></div>
+      </div>
+    </div>
+
+    <!-- 13일 — 오늘 -->
+    <div class="pcell today-cell">
+      <span>13</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
+      </div>
+    </div>
+
+    <!-- 14~18일 -->
+    <div class="pcell"><span>14</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
+      </div>
+    </div>
+    <div class="pcell"><span>15</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
+      </div>
+    </div>
+    <div class="pcell"><span>16</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
+      </div>
+    </div>
+    <div class="pcell"><span>17</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
+      </div>
+    </div>
+    <div class="pcell"><span>18</span>
+      <div class="pcell-bars">
+        <div class="pcell-bar" style="background:var(--c-cat-dan); opacity:0.25"></div>
+        <div class="pcell-bar" style="background:var(--c-cat-jang); opacity:0.25"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 범례 -->
+  <div class="preview-period-list">
+    <div class="preview-period">
+      <div class="period-dot" style="background:var(--c-cat-dan)"></div>
+      <span>5월의 단편소설</span>
+      <span class="period-range">05-01 — 05-31</span>
+    </div>
+    <div class="preview-period">
+      <div class="period-dot" style="background:var(--c-cat-jang)"></div>
+      <span>올해의 장편</span>
+      <span class="period-range">01-01 — 12-31</span>
+    </div>
+  </div>
+
+</div>
 
     <!-- 기능 소개 -->
     <div id="landing-features">
