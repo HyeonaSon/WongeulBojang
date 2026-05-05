@@ -23,34 +23,44 @@ function initDashboard() {
     const todayDone  = todayChars >= daily;
 
     return `
-      <div class="project-card" onclick="openProjectDetail('${p.id}')">
-        <div class="project-card-top">
-          <div>
-            <div class="project-card-name">${escapeHtml(p.name)}</div>
-            <div class="project-card-category ${catClass}">${p.category}</div>
-          </div>
-          <div class="project-card-dday ${daysLeft <= 7 ? 'urgent' : ''}">
-            D-${daysLeft}
-          </div>
-        </div>
-
-        <div class="progress-bar">
-          <div class="progress-fill" style="width:${progress}%"></div>
-        </div>
-        <div class="progress-label">
-          <span>${written.toLocaleString()}자</span>
-          <span>${progress}% · ${p.target_chars.toLocaleString()}자 목표</span>
-        </div>
-
-        <div class="daily-row ${todayDone ? 'done' : ''}">
-          <span class="daily-label">오늘 납입</span>
-          <span class="daily-value">
-            ${todayChars.toLocaleString()}자
-            ${todayDone ? '✓' : `/ 목표 ${daily.toLocaleString()}자`}
-          </span>
-        </div>
+  <div class="project-card" onclick="openProjectDetail('${p.id}')">
+    <div class="project-card-top">
+      <div>
+        <div class="project-card-name">${escapeHtml(p.name)}</div>
+        <div class="project-card-category ${catClass}">${p.category}</div>
       </div>
-    `;
+      <div class="project-card-dday ${daysLeft <= 7 ? 'urgent' : ''}">
+        D-${daysLeft}
+      </div>
+    </div>
+
+    <!-- 납입 기간 표시 추가 -->
+    <div class="project-card-period">
+      ${p.start_date <= getToday()
+        ? `납입 중 · ${p.start_date} — ${p.deadline}`
+        : `납입 시작 ${p.start_date} · D-${getDaysLeft(p.start_date)}일 후`
+      }
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" style="width:${progress}%"></div>
+    </div>
+    <div class="progress-label">
+      <span>${written.toLocaleString()}자</span>
+      <span>${progress}% · ${p.target_chars.toLocaleString()}자 목표</span>
+    </div>
+
+    <div class="daily-row ${todayDone ? 'done' : ''}">
+      <span class="daily-label">오늘 납입</span>
+      <span class="daily-value">
+        ${p.start_date > getToday()
+          ? '아직 납입 전이에요'
+          : todayChars.toLocaleString() + '자 ' + (todayDone ? '✓' : `/ 목표 ${daily.toLocaleString()}자`)
+        }
+      </span>
+    </div>
+  </div>
+`;
   });
 
   container.innerHTML = `
