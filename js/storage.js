@@ -1,147 +1,108 @@
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// ── 날짜 유틸 ──────────────────────────────
 
-// ── 인증 ──────────────────────────────────────
-
-async function getCurrentUser() {
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
+function getToday() {
+  return new Date().toISOString().slice(0, 10);
 }
 
-async function signUp(email, password) {
-  const { error } = await supabase.auth.signUp({ email, password });
-  return error;
-}
-
-async function signIn(email, password) {
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  return error;
-}
-
-async function signOut() {
-  await supabase.auth.signOut();
+function getDateStr(isoString) {
+  return isoString.slice(0, 10);
 }
 
 // ── 프로젝트 ──────────────────────────────────
 
-async function getAllProjects() {
-  const { data } = await supabase
-    .from('projects')
-    .select('*')
-    .order('created_at');
-  return data || [];
+function getAllProjects() {
+  const keys = Object.keys(localStorage).filter(k => k.startsWith('project_'));
+  return keys.map(k => JSON.parse(localStorage.getItem(k)))
+             .sort((a, b) => a.created_at.localeCompare(b.created_at));
 }
 
-async function getActiveProjects() {
-  const { data } = await supabase
-    .from('projects')
-    .select('*')
-    .gte('deadline', getToday())
-    .order('deadline');
-  return data || [];
+function getActiveProjects() {
+  return getAllProjects().filter(p => p.deadline >= getToday());
 }
 
-async function getProject(id) {
-  const { data } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', id)
-    .single();
-  return data;
+function getProject(id) {
+  return JSON.parse(localStorage.getItem(`project_${id}`));
 }
 
-async function createProject(name, category, startDate, deadline, targetChars) {
-  const user = await getCurrentUser();
-  const { data } = await supabase.from('projects').insert({
-    user_id:      user.id,
+function createProject(name, category, startDate, deadline, targetChars) {
+  const project = {
+    id:           Date.now().toString(),
     name,
     category,
     start_date:   startDate,
     deadline,
-    target_chars: targetChars
-  }).select().single();
-  return data;
+    target_chars: targetChars,
+    created_at:   new Date().toISOString()
+  };
+  localStorage.setItem(`project_${project.id}`, JSON.stringify(project));
+  return project;
 }
 
-async function updateProject(id, fields) {
-  await supabase.from('projects').update(fields).eq('id', id);
+function updateProject(id, fields) {
+  const key     = `project_${id}`;
+  const project = JSON.parse(localStorage.getItem(key));
+  if (!project) return false;
+  Object.assign(project, fields);
+  localStorage.setItem(key, JSON.stringify(project));
+  return true;
 }
 
-async function deleteProject(id) {
-  await supabase.from('projects').delete().eq('id', id);
+function deleteProject(id) {
+  localStorage.removeItem(`project_${id}`);
 }
 
 // ── 글 ────────────────────────────────────────
 
-async function getAllPosts() {
-  const { data } = await supabase
-    .from('posts')
-    .select('*')
-    .order('created_at', { ascending: false });
-  return data || [];
+function getAllPosts() {
+  const keys = Object.keys(localStorage).filter(k => k.startsWith('post_'));
+  return keys.map(k => JSON.parse(localStorage.getItem(k)))
+             .sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 
-async function getPostsByProject(projectId) {
-  const { data } = await supabase
-    .from('posts')
-    .select('*')
-    .eq('project_id', projectId)
-    .order('created_at', { ascending: false });
-  return data || [];
+function getPostsByProject(projectId) {
+  return getAllPosts().filter(p => p.project_id === projectId);
 }
 
-async function getPostByDate(dateStr) {
-  const { data } = await supabase
-    .from('posts')
-    .select('*')
-    .gte('created_at', dateStr + 'T00:00:00.000Z')
-    .lte('created_at', dateStr + 'T23:59:59.999Z')
-    .maybeSingle();
-  return data;
+function getPostByDate(dateStr) {
+  return getAllPosts().find(p => getDateStr(p.created_at) === dateStr) || null;
 }
 
-async function getPostByDateAndProject(dateStr, projectId) {
-  const { data } = await supabase
-    .from('posts')
-    .select('*')
-    .eq('project_id', projectId)
-    .gte('created_at', dateStr + 'T00:00:00.000Z')
-    .lte('created_at', dateStr + 'T23:59:59.999Z')
-    .maybeSingle();
-  return data;
+function getPostByDateAndProject(dateStr, projectId) {
+  return getAllPosts().find(p =>
+    getDateStr(p.created_at) === dateStr &&
+    p.project_id === projectId
+  ) || null;
 }
 
-async function getPostsByDateRange(startDate, endDate) {
-  const { data } = await supabase
-    .from('posts')
-    .select('*')
-    .gte('created_at', startDate + 'T00:00:00.000Z')
-    .lte('created_at', endDate + 'T23:59:59.999Z')
-    .order('created_at');
-  return data || [];
+function getPostsByDateRange(startDate, endDate) {
+  return getAllPosts().filter(p => {
+    const d = getDateStr(p.created_at);
+    return d >= startDate && d <= endDate;
+  }).sort((a, b) => a.created_at.localeCompare(b.created_at));
 }
 
-async function createPost(projectId, body) {
-  const user = await getCurrentUser();
-  const { data } = await supabase.from('posts').insert({
-    user_id:    user.id,
+function createPost(projectId, body) {
+  const post = {
+    id:         Date.now().toString(),
     project_id: projectId,
     body,
-    char_count: body.length
-  }).select().single();
-  return data;
+    char_count: body.length,
+    created_at: new Date().toISOString()
+  };
+  localStorage.setItem(`post_${post.id}`, JSON.stringify(post));
+  return post;
 }
 
-async function updatePost(id, projectId, newBody) {
-  const { data: post } = await supabase
-    .from('posts').select('created_at').eq('id', id).single();
+function updatePost(id, projectId, newBody) {
+  const key  = `post_${id}`;
+  const post = JSON.parse(localStorage.getItem(key));
   if (!post || getDateStr(post.created_at) !== getToday()) return false;
 
-  await supabase.from('posts').update({
-    project_id: projectId,
-    body:       newBody,
-    char_count: newBody.length,
-    updated_at: new Date().toISOString()
-  }).eq('id', id);
+  post.project_id  = projectId;
+  post.body        = newBody;
+  post.char_count  = newBody.length;
+  post.updated_at  = new Date().toISOString();
+  localStorage.setItem(key, JSON.stringify(post));
   return true;
 }
 
@@ -151,9 +112,9 @@ function isEditable(post) {
 
 // ── 통계 ──────────────────────────────────────
 
-async function getMonthlyStats(year, month) {
+function getMonthlyStats(year, month) {
   const { start, end } = getMonthRange(year, month);
-  const posts = await getPostsByDateRange(start, end);
+  const posts = getPostsByDateRange(start, end);
 
   const byDate = {};
   posts.forEach(p => {
@@ -169,32 +130,23 @@ async function getMonthlyStats(year, month) {
   return { byDate, totalChars, writtenDays, daysInMonth, avgChars };
 }
 
-async function getYearlyStats(year) {
-  const start = `${year}-01-01`;
-  const end   = `${year}-12-31`;
-  const posts = await getPostsByDateRange(start, end);
-
-  const byMonth = Array(12).fill(0);
+function getYearlyStats(year) {
+  const posts    = getPostsByDateRange(`${year}-01-01`, `${year}-12-31`);
+  const byMonth  = Array(12).fill(0);
   posts.forEach(p => {
     const m = new Date(p.created_at).getMonth();
     byMonth[m] += p.char_count;
   });
-
   return byMonth;
 }
 
-async function getProjectWrittenChars(projectId) {
-  const { data } = await supabase
-    .from('posts')
-    .select('char_count')
-    .eq('project_id', projectId);
-  return (data || []).reduce((s, p) => s + p.char_count, 0);
+function getProjectWrittenChars(projectId) {
+  return getPostsByProject(projectId).reduce((s, p) => s + p.char_count, 0);
 }
 
-async function getStreak() {
-  const posts = await getAllPosts();
+function getStreak() {
+  const posts = getAllPosts();
   const dates = new Set(posts.map(p => getDateStr(p.created_at)));
-
   let streak  = 0;
   let current = new Date(getToday());
 
@@ -206,4 +158,11 @@ async function getStreak() {
     } else break;
   }
   return streak;
+}
+
+function getEarliestPostDate(projectId = null) {
+  let posts = getAllPosts();
+  if (projectId) posts = posts.filter(p => p.project_id === projectId);
+  if (!posts.length) return null;
+  return posts.map(p => getDateStr(p.created_at)).sort()[0];
 }
