@@ -1,11 +1,6 @@
 let authMode = 'login'; // 'login' | 'signup'
 
 document.addEventListener('DOMContentLoaded', async () => {
-
-   // 임시 연결 테스트
-  const { data, error } = await supabase.auth.getSession();
-  console.log('Supabase 연결:', data, error);
-
   
   const { data: { session } } = await supabase.auth.getSession();
   session ? showApp() : showLanding();
