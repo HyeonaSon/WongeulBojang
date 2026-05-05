@@ -1207,3 +1207,11 @@ main {
     padding: 6px;
   }
 }
+
+.project-card-period {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--c-muted);
+  letter-spacing: 0.03em;
+  margin-bottom: var(--space-md);
+}
