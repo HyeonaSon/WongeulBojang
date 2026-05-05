@@ -17,8 +17,8 @@ async function switchScreen(name) {
   });
 
   if (name === 'dashboard') await initDashboard();
-  if (name === 'editor')    initEditor();
+  if (name === 'editor') await initEditor();
   if (name === 'archive')   await initArchive();
-  if (name === 'stats')     initStats();
+  if (name === 'stats') await initStats();
   if (name === 'settings')  initSettings();
 }
