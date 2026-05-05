@@ -1580,3 +1580,67 @@ main {
   font-size: var(--text-xs);
   color: var(--c-muted);
 }
+
+/* ── 달력 타임라인 바 ── */
+
+.cal-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 0 2px;
+}
+
+.cal-bar {
+  height: 3px;
+  border-radius: 2px;
+  width: 100%;
+}
+
+.empty-bar {
+  background: transparent;
+}
+
+/* 시작일 — 왼쪽 둥글게 */
+.cal-bar.bar-start {
+  border-radius: 2px 0 0 2px;
+  margin-left: 2px;
+  width: calc(100% - 2px);
+}
+
+/* 종료일 — 오른쪽 둥글게 */
+.cal-bar.bar-end {
+  border-radius: 0 2px 2px 0;
+  margin-right: 2px;
+  width: calc(100% - 2px);
+}
+
+/* 시작이자 종료 */
+.cal-bar.bar-start.bar-end {
+  border-radius: 2px;
+  margin: 0 2px;
+  width: calc(100% - 4px);
+}
+
+/* 글 쓴 날 — 진하게 */
+.cal-bar.active-bar {
+  opacity: 1 !important;
+}
+
+/* 글 안 쓴 날 — 연하게 */
+.cal-bar.inactive-bar {
+  opacity: 0.25 !important;
+}
+
+/* 달력 셀 높이 조정 — 바가 들어갈 공간 확보 */
+.cal-cell {
+  aspect-ratio: unset;        /* 고정 비율 해제 */
+  min-height: 56px;           /* 날짜 + 바 3개 들어갈 높이 */
+  padding: 4px 0;
+  justify-content: flex-start;
+  gap: 4px;
+}
+
+.cal-date {
+  margin-bottom: 2px;
+}
