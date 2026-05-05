@@ -101,6 +101,15 @@ main {
 
 /* ── 프로젝트 카드 ── */
 
+.project-card-period {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--c-muted);
+  letter-spacing: 0.03em;
+  margin-bottom: var(--space-md);
+}
+
+
 .project-card {
   background: var(--c-surface);
   border: 1px solid var(--c-line);
@@ -1208,10 +1217,3 @@ main {
   }
 }
 
-.project-card-period {
-  font-family: var(--font-sans);
-  font-size: var(--text-xs);
-  color: var(--c-muted);
-  letter-spacing: 0.03em;
-  margin-bottom: var(--space-md);
-}
