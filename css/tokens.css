@@ -1,23 +1,33 @@
 :root {
-  --c-bg:         #F7F7F5;
-  --c-surface:    #FFFFFF;
-  --c-surface-2:  #F0F0ED;
-  --c-line:       #E4E4E0;
-  --c-text:       #1A1A18;
-  --c-text-2:     #5A5A56;
-  --c-muted:      #9A9A94;
-  --c-accent:     #1A3A2A;
-  --c-accent-2:   #4A7C59;
-  --c-success:    #2D6A4F;
-  --c-warn:       #B5620A;
+  /* ── 색상 ── */
+  --c-bg:          #F5F5F2;
+  --c-surface:     #FFFFFF;
+  --c-surface-2:   #EFEFEB;
+  --c-line:        #E2E2DE;
+  --c-line-2:      #D0D0CA;
 
-  --c-cat-jogak: #A0A09A;
-  --c-cat-yeop:   #6B8F71;
-  --c-cat-dan:   #4A7C59;
-  --c-cat-jung:   #2D6A4F;
-  --c-cat-kyung: #1A5C42;
-  --c-cat-jang:   #1A3A2A;
+  --c-text:        #111110;
+  --c-text-2:      #4A4A46;
+  --c-muted:       #96968E;
 
+  --c-accent:      #0A3320;   /* 메인 — 딥그린 */
+  --c-accent-2:    #1A5C3A;   /* 보조 */
+  --c-accent-3:    #2D8A5A;   /* 밝은 포인트 */
+  --c-accent-light:#E8F5EE;   /* 연한 배경 */
+
+  --c-success:     #1A7A4A;
+  --c-warn:        #C4620A;
+  --c-danger:      #B42318;
+
+  /* ── 카테고리 ── */
+  --c-cat-jogak:   #8A8A82;
+  --c-cat-yeop:    #5A8A62;
+  --c-cat-dan:     #2D7A50;
+  --c-cat-jung:    #1A6A42;
+  --c-cat-kyung:   #0F5A35;
+  --c-cat-jang:    #0A3320;
+
+  /* ── 간격 ── */
   --space-xs:  4px;
   --space-sm:  8px;
   --space-md:  16px;
@@ -25,10 +35,18 @@
   --space-xl:  40px;
   --space-2xl: 64px;
 
-  --nav-h:     56px;
-  --max-w:     720px;
+  /* ── 레이아웃 ── */
+  --nav-h:     60px;
+  --max-w:     640px;
 
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  /* ── 반경 ── */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  /* ── 그림자 ── */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.04);
 }
