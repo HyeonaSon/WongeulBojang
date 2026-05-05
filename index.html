@@ -23,56 +23,8 @@
 </head>
 <body>
 
-  <!-- 랜딩 -->
-  <div id="screen-landing">
-    <div id="landing-wrap">
-
-      <div id="landing-header">
-        <span id="landing-logo">원글보장</span>
-        <button id="btn-go-app" onclick="startApp()">시작하기</button>
-      </div>
-
-      <div id="landing-hero">
-        <h1 id="landing-headline">글을<br>적금처럼 모으세요</h1>
-        <p id="landing-sub">매일 한 편씩 납입하면<br>마감일에 완성된 작품이 됩니다</p>
-        <button class="btn-hero" onclick="startApp()">무료로 시작하기 →</button>
-      </div>
-
-      <!-- 앱 미리보기 -->
-      <div id="landing-preview">
-        <!-- 대시보드 미리보기 — 기존 코드 유지 -->
-        <!-- 달력 미리보기 — 기존 코드 유지 -->
-      </div>
-
-      <div id="landing-features">
-        <div class="landing-feature-card">
-          <div class="lf-icon">✍️</div>
-          <div class="lf-title">하루 한 번 납입</div>
-          <div class="lf-desc">하루가 지나면 수정·추가 불가.<br>그날의 글은 그날에만.</div>
-        </div>
-        <div class="landing-feature-card">
-          <div class="lf-icon">🎯</div>
-          <div class="lf-title">자동 목표 계산</div>
-          <div class="lf-desc">마감일까지 하루에 몇 자씩<br>써야 하는지 매일 알려줘요.</div>
-        </div>
-        <div class="landing-feature-card">
-          <div class="lf-icon">📚</div>
-          <div class="lf-title">원고지 분류</div>
-          <div class="lf-desc">엽편·단편·중편·경장편·장편<br>목표 분량에 맞게 자동 분류.</div>
-        </div>
-      </div>
-
-      <div id="landing-cta">
-        <button class="btn-hero" onclick="startApp()">지금 바로 시작하기 →</button>
-        <p>무료 · 가입 없이 바로 사용</p>
-      </div>
-
-      <div id="landing-footer">© 2026 원글보장</div>
-    </div>
-  </div>
-
   <!-- 앱 -->
-  <div id="app" hidden>
+  <div id="app">
     <nav id="nav">
       <button data-screen="dashboard">홈</button>
       <button data-screen="editor">쓰기</button>
