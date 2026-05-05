@@ -1644,3 +1644,27 @@ main {
 .cal-date {
   margin-bottom: 2px;
 }
+
+/* ── 랜딩 달력 바 ── */
+
+.pcell {
+  aspect-ratio: unset;
+  min-height: 40px;
+  padding: 3px 0;
+  justify-content: flex-start;
+  gap: 3px;
+}
+
+.pcell-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 0 1px;
+}
+
+.pcell-bar {
+  height: 2px;
+  border-radius: 1px;
+  width: 100%;
+}
