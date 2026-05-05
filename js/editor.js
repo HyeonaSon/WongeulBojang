@@ -1,9 +1,9 @@
 let autoSaveTimer = null;
 
-async function initEditor() {
-  const today    = getToday();
-  const projects = await getActiveProjects();
-  const todayPost = await getPostByDate(today);
+function initEditor() {
+  const today     = getToday();
+  const projects  = getActiveProjects();
+  const todayPost = getPostByDate(today);
 
   renderEditorUI(todayPost, projects);
 }
@@ -54,7 +54,8 @@ function renderEditorUI(post, projects) {
   `;
 
   if (post) {
-    document.getElementById('save-btn').dataset.postId = post.id;
+    const saveBtn = document.getElementById('save-btn');
+    if (saveBtn) saveBtn.dataset.postId = post.id;
   }
 
   bindEditorEvents();
@@ -62,11 +63,11 @@ function renderEditorUI(post, projects) {
   autoResizeTextarea();
 }
 
-async function onProjectChange() {
-  const selectEl  = document.getElementById('project-select');
-  const barEl     = document.getElementById('daily-goal-bar');
-  const countEl   = document.getElementById('char-count');
-  const bodyEl    = document.getElementById('body');
+function onProjectChange() {
+  const selectEl = document.getElementById('project-select');
+  const barEl    = document.getElementById('daily-goal-bar');
+  const countEl  = document.getElementById('char-count');
+  const bodyEl   = document.getElementById('body');
 
   if (!selectEl || !barEl) return;
 
@@ -76,13 +77,11 @@ async function onProjectChange() {
     return;
   }
 
-  const project = await getProject(projectId);
-  const written = await getProjectWrittenChars(projectId);
-  const daily   = calcDailyTarget(project.target_chars, written, project.deadline);
-
-  // 오늘 현재 입력 중인 글자 수
+  const project      = getProject(projectId);
+  const written      = getProjectWrittenChars(projectId);
+  const daily        = calcDailyTarget(project.target_chars, written, project.deadline);
   const currentChars = bodyEl ? bodyEl.value.length : 0;
-  const progress = calcProgress(currentChars, daily);
+  const progress     = calcProgress(currentChars, daily);
 
   barEl.innerHTML = `
     <div class="daily-goal-wrap">
@@ -100,15 +99,14 @@ async function onProjectChange() {
 
   if (countEl) countEl.textContent = `오늘 ${currentChars.toLocaleString()}자`;
 
-  // 전역에 daily 저장 (입력 중 실시간 업데이트용)
   window._dailyTarget = daily;
 }
 
 function updateDailyBar() {
-  const bodyEl   = document.getElementById('body');
-  const fillEl   = document.getElementById('daily-progress-fill');
-  const textEl   = document.getElementById('daily-goal-text');
-  const countEl  = document.getElementById('char-count');
+  const bodyEl  = document.getElementById('body');
+  const fillEl  = document.getElementById('daily-progress-fill');
+  const textEl  = document.getElementById('daily-goal-text');
+  const countEl = document.getElementById('char-count');
 
   if (!bodyEl || !fillEl) return;
 
@@ -166,7 +164,7 @@ function autoResizeTextarea() {
   el.style.height = el.scrollHeight + 'px';
 }
 
-async function savePost(silent = false) {
+function savePost(silent = false) {
   const bodyEl   = document.getElementById('body');
   const selectEl = document.getElementById('project-select');
   const saveBtn  = document.getElementById('save-btn');
@@ -187,9 +185,9 @@ async function savePost(silent = false) {
   }
 
   if (postId) {
-    await updatePost(postId, projectId, body);
+    updatePost(postId, projectId, body);
   } else {
-    const post = await createPost(projectId, body);
+    const post = createPost(projectId, body);
     if (saveBtn) saveBtn.dataset.postId = post.id;
   }
 
