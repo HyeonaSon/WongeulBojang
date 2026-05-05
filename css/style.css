@@ -648,14 +648,13 @@ main {
 .daily-label { color: var(--c-muted); }
 .daily-row.done .daily-value { color: var(--c-success); }
 
-/* ── 카테고리 색상 ── */
-
-.cat-조각글 { color: var(--c-cat-조각글); }
-.cat-엽편   { color: var(--c-cat-엽편); }
-.cat-단편   { color: var(--c-cat-단편); }
-.cat-중편   { color: var(--c-cat-중편); }
-.cat-경장편 { color: var(--c-cat-경장편); }
-.cat-장편   { color: var(--c-cat-장편); }
+/* 카테고리 색상 클래스 */
+.cat-jogak { color: var(--c-cat-jogak); }
+.cat-yeop  { color: var(--c-cat-yeop); }
+.cat-dan   { color: var(--c-cat-dan); }
+.cat-jung  { color: var(--c-cat-jung); }
+.cat-kyung { color: var(--c-cat-kyung); }
+.cat-jang  { color: var(--c-cat-jang); }
 
 .category-badge {
   display: flex;
@@ -1320,13 +1319,16 @@ main {
    ════════════════════════════════ */
 
 /* ── 태블릿 (1024px 이하) ── */
+/* 레이아웃은 거의 그대로, 기능 소개만 조정 */
 
 @media (max-width: 1024px) {
 
+  /* 랜딩 미리보기 2열 유지 */
   #landing-preview {
     grid-template-columns: 1fr 1fr;
   }
 
+  /* 기능 소개만 가로 배치로 */
   #landing-features {
     grid-template-columns: 1fr;
     gap: var(--space-sm);
@@ -1348,6 +1350,7 @@ main {
 }
 
 /* ── 모바일 (640px 이하) ── */
+/* 여기서부터만 1열, 좁은 레이아웃 적용 */
 
 @media (max-width: 640px) {
 
@@ -1371,13 +1374,11 @@ main {
     font-size: var(--text-sm);
   }
 
+  /* 미리보기 1열로, 달력은 숨김 */
   #landing-preview {
     grid-template-columns: 1fr;
   }
 
-  #landing-preview .preview-phone:last-child {
-    display: none;
-  }
 
   .btn-hero {
     width: 100%;
@@ -1437,16 +1438,10 @@ main {
 @media (max-width: 400px) {
 
   #landing-headline { font-size: var(--text-lg); }
-
-  .total-value { font-size: var(--text-lg); }
+  .total-value      { font-size: var(--text-lg); }
 
   #nav button {
     font-size: 9px;
     padding: 6px;
-  }
-
-  .stat-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 1px;
   }
 }
