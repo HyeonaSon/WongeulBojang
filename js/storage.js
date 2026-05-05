@@ -1,13 +1,3 @@
-// ── 날짜 유틸 ──────────────────────────────
-
-function getToday() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function getDateStr(isoString) {
-  return isoString.slice(0, 10);
-}
-
 // ── 프로젝트 ──────────────────────────────────
 
 function getAllProjects() {
@@ -24,7 +14,7 @@ function getProject(id) {
   return JSON.parse(localStorage.getItem(`project_${id}`));
 }
 
-function createProject(name, category, startDate, deadline, targetChars) {
+function createProject(name, category, startDate, deadline, targetChars, writeDays) {
   const project = {
     id:           Date.now().toString(),
     name,
@@ -32,6 +22,7 @@ function createProject(name, category, startDate, deadline, targetChars) {
     start_date:   startDate,
     deadline,
     target_chars: targetChars,
+    write_days:   writeDays || [],  // [] = 매일
     created_at:   new Date().toISOString()
   };
   localStorage.setItem(`project_${project.id}`, JSON.stringify(project));
@@ -98,10 +89,10 @@ function updatePost(id, projectId, newBody) {
   const post = JSON.parse(localStorage.getItem(key));
   if (!post || getDateStr(post.created_at) !== getToday()) return false;
 
-  post.project_id  = projectId;
-  post.body        = newBody;
-  post.char_count  = newBody.length;
-  post.updated_at  = new Date().toISOString();
+  post.project_id = projectId;
+  post.body       = newBody;
+  post.char_count = newBody.length;
+  post.updated_at = new Date().toISOString();
   localStorage.setItem(key, JSON.stringify(post));
   return true;
 }
@@ -111,6 +102,26 @@ function isEditable(post) {
 }
 
 // ── 통계 ──────────────────────────────────────
+
+function getProjectWrittenChars(projectId) {
+  return getPostsByProject(projectId).reduce((s, p) => s + p.char_count, 0);
+}
+
+function getStreak() {
+  const posts = getAllPosts();
+  const dates = new Set(posts.map(p => getDateStr(p.created_at)));
+  let streak  = 0;
+  let current = new Date(getToday());
+
+  while (true) {
+    const d = current.toISOString().slice(0, 10);
+    if (dates.has(d)) {
+      streak++;
+      current.setDate(current.getDate() - 1);
+    } else break;
+  }
+  return streak;
+}
 
 function getMonthlyStats(year, month) {
   const { start, end } = getMonthRange(year, month);
@@ -131,33 +142,13 @@ function getMonthlyStats(year, month) {
 }
 
 function getYearlyStats(year) {
-  const posts    = getPostsByDateRange(`${year}-01-01`, `${year}-12-31`);
-  const byMonth  = Array(12).fill(0);
+  const posts   = getPostsByDateRange(`${year}-01-01`, `${year}-12-31`);
+  const byMonth = Array(12).fill(0);
   posts.forEach(p => {
     const m = new Date(p.created_at).getMonth();
     byMonth[m] += p.char_count;
   });
   return byMonth;
-}
-
-function getProjectWrittenChars(projectId) {
-  return getPostsByProject(projectId).reduce((s, p) => s + p.char_count, 0);
-}
-
-function getStreak() {
-  const posts = getAllPosts();
-  const dates = new Set(posts.map(p => getDateStr(p.created_at)));
-  let streak  = 0;
-  let current = new Date(getToday());
-
-  while (true) {
-    const d = current.toISOString().slice(0, 10);
-    if (dates.has(d)) {
-      streak++;
-      current.setDate(current.getDate() - 1);
-    } else break;
-  }
-  return streak;
 }
 
 function getEarliestPostDate(projectId = null) {
