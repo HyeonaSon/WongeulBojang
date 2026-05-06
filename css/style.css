@@ -148,6 +148,7 @@ main {
   letter-spacing: 0.1em;
   opacity: 0.65;
   margin-bottom: var(--space-sm);
+  text-align: right;   /* ← 추가 */
 }
 
 .balance-amount {
@@ -157,6 +158,7 @@ main {
   letter-spacing: -0.02em;
   line-height: 1;
   margin-bottom: var(--space-sm);
+  text-align: right;   /* ← 추가 */
 }
 
 .balance-amount span {
