@@ -313,15 +313,137 @@ main {
   font-size: var(--text-sm);
 }
 
-.today-deposit-label { color: var(--c-muted); }
+/* ── 대시보드 헤더 ── */
+.brand {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);    /* 키움 */
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--c-accent);
+}
 
-.today-deposit-value { color: var(--c-text); font-weight: 500; }
+.header-btn {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);    /* 키움 */
+  color: var(--c-muted);
+  padding: 8px 14px;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s;
+}
 
-.today-deposit-value.done { color: var(--c-success); }
+/* ── 잔고 카드 ── */
+.balance-label {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);    /* xs → sm */
+  letter-spacing: 0.08em;
+  opacity: 0.65;
+  margin-bottom: var(--space-sm);
+  text-align: right;
+}
 
-.today-deposit-value.not-today { color: var(--c-muted); font-style: italic; }
+.balance-amount {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-bottom: var(--space-sm);
+  text-align: right;
+}
 
-/* FAB */
+.balance-amount span {
+  font-size: var(--text-xl);    /* lg → xl */
+  margin-left: 4px;
+}
+
+.balance-sub {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);    /* xs → sm */
+  opacity: 0.7;
+  letter-spacing: 0.04em;
+  text-align: right;
+}
+
+.balance-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: var(--space-sm);
+  background: rgba(255,255,255,0.12);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: var(--text-sm);    /* 11px → sm */
+}
+
+/* ── 섹션 헤더 ── */
+.section-title {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);    /* xs → sm */
+  color: var(--c-muted);
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+
+.section-action {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);    /* xs → sm */
+  color: var(--c-accent-3);
+  letter-spacing: 0.04em;
+}
+
+/* ── 적금 카드 ── */
+.savings-card-name {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);    /* md → lg */
+  font-weight: 400;
+  color: var(--c-text);
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.savings-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);    /* xs → sm */
+  color: var(--c-muted);
+}
+
+.savings-card-dday {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);    /* xs → sm */
+  font-weight: 500;
+  color: var(--c-muted);
+  background: var(--c-surface-2);
+  padding: 5px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);    /* xs → sm */
+  color: var(--c-muted);
+  margin-bottom: var(--space-md);
+}
+
+.today-deposit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--c-surface-2);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);    /* 키움 */
+}
+
+/* ── FAB ── */
 .fab {
   position: fixed;
   bottom: calc(var(--nav-h) + var(--space-lg));
@@ -332,18 +454,16 @@ main {
   background: var(--c-accent);
   color: white;
   font-family: var(--font-sans);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);  /* sm → base */
   font-weight: 500;
   letter-spacing: 0.04em;
-  padding: 14px 0;
+  padding: 16px 0;
   border-radius: var(--radius-md);
   text-align: center;
   box-shadow: var(--shadow-md);
   transition: opacity 0.15s;
   z-index: 50;
 }
-
-.fab:hover { opacity: 0.88; }
 
 /* ════════════════════════════
    에디터
