@@ -5,7 +5,7 @@ function initArchive() {
   const now    = new Date();
   archiveYear  = now.getFullYear();
   archiveMonth = now.getMonth();
-  selectedDate = getToday();  // ← null 대신 오늘 날짜로 초기화
+  selectedDate = getToday();
   renderArchive();
 }
 
@@ -75,7 +75,7 @@ function renderArchive() {
       `;
     }).join('');
 
-    // 납입일 여부 (어떤 프로젝트든 납입 가능한 날)
+    // 납입 가능 여부
     const isWritable = activeProjects.some(p => {
       if (dateStr < p.start_date || dateStr > p.deadline) return false;
       if (!p.write_days || p.write_days.length === 0) return true;
@@ -124,6 +124,7 @@ function renderArchive() {
     <div id="archive-detail"></div>
   `;
 
+  // 선택된 날짜 상세 표시
   if (selectedDate && postByDate[selectedDate]) {
     renderDateDetail(postByDate[selectedDate], projects);
   }
@@ -146,6 +147,7 @@ function renderDateDetail(post, projects) {
   const project    = projects.find(p => p.id === post.project_id);
   const dateStr    = getDateStr(post.created_at);
   const colorClass = project ? (CATEGORY_CLASS[project.category] || 'jogak') : 'jogak';
+  const editable   = isEditable(post);
 
   detail.innerHTML = `
     <div class="detail-card">
@@ -163,7 +165,9 @@ function renderDateDetail(post, projects) {
         </div>
         <div class="detail-meta">
           <span class="detail-chars">${post.char_count.toLocaleString()}자</span>
-          <span class="detail-badge locked">읽기 전용</span>
+          <span class="detail-badge ${editable ? 'editable' : 'locked'}">
+            ${editable ? '수정 가능' : '잠김'}
+          </span>
         </div>
       </div>
 
@@ -172,26 +176,19 @@ function renderDateDetail(post, projects) {
           ${escapeHtml(post.body).replace(/\n/g, '<br>')}
         </div>
       </div>
+
+      ${editable ? `
+        <div class="detail-footer">
+          <span class="detail-save-status">오늘 쓴 글은 납입 메뉴에서 수정할 수 있어요.</span>
+          <button class="modal-save-btn" onclick="switchScreen('editor')">
+            납입 메뉴로 →
+          </button>
+        </div>
+      ` : ''}
     </div>
   `;
 
   detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function saveFromDetail(postId, projectId) {
-  const body = document.getElementById('detail-body')?.value.trim();
-  if (!body) return;
-
-  const statusEl = document.getElementById('detail-save-status');
-  if (statusEl) statusEl.textContent = '저장 중...';
-
-  updatePost(postId, projectId, body);
-
-  if (statusEl) statusEl.textContent = '저장됨';
-  setTimeout(() => {
-    const el = document.getElementById('detail-save-status');
-    if (el) el.textContent = '';
-  }, 2000);
 }
 
 function moveArchive(dir) {
@@ -200,84 +197,4 @@ function moveArchive(dir) {
   if (archiveMonth < 0)  { archiveMonth = 11; archiveYear--; }
   selectedDate = null;
   renderArchive();
-}
-
-function openPost(post, locked) {
-  const existing = document.getElementById('post-modal');
-  if (existing) existing.remove();
-
-  const modal     = document.createElement('div');
-  modal.id        = 'post-modal';
-  modal.className = 'modal-overlay';
-
-  modal.innerHTML = `
-    <div class="modal">
-      <div class="modal-handle"></div>
-      <div class="modal-header">
-        <span class="detail-date">
-          ${formatDisplayDate(getDateStr(post.created_at))}
-        </span>
-        <button class="modal-close" onclick="closeModal()">✕</button>
-      </div>
-      <div>
-        ${locked
-          ? `<div class="modal-post-body">
-               ${escapeHtml(post.body).replace(/\n/g, '<br>')}
-             </div>`
-          : `<textarea class="modal-body-input" id="modal-body"
-               spellcheck="false">${escapeHtml(post.body)}</textarea>`
-        }
-      </div>
-      <div class="modal-footer">
-        <span class="modal-charcount">${post.char_count.toLocaleString()}자</span>
-        ${locked
-          ? `<span class="modal-locked-msg">수정할 수 없는 글이에요.</span>`
-          : `<button class="modal-save-btn"
-                     onclick="saveFromModal('${post.id}', '${post.project_id}')">
-               저장
-             </button>`
-        }
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-
-  if (!locked) {
-    const ta = document.getElementById('modal-body');
-    if (ta) {
-      ta.style.height = 'auto';
-      ta.style.height = ta.scrollHeight + 'px';
-      ta.addEventListener('input', () => {
-        ta.style.height = 'auto';
-        ta.style.height = ta.scrollHeight + 'px';
-      });
-    }
-  }
-
-  modal.addEventListener('click', e => {
-    if (e.target === modal) closeModal();
-  });
-  document.addEventListener('keydown', handleModalEsc);
-  requestAnimationFrame(() => modal.classList.add('open'));
-}
-
-function saveFromModal(postId, projectId) {
-  const body = document.getElementById('modal-body')?.value.trim();
-  if (!body) return;
-  updatePost(postId, projectId, body);
-  closeModal();
-  renderArchive();
-}
-
-function closeModal() {
-  const modal = document.getElementById('post-modal');
-  if (!modal) return;
-  modal.classList.remove('open');
-  document.removeEventListener('keydown', handleModalEsc);
-  setTimeout(() => modal.remove(), 300);
-}
-
-function handleModalEsc(e) {
-  if (e.key === 'Escape') closeModal();
 }
