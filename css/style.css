@@ -709,32 +709,6 @@ main {
   line-height: 1.8;
 }
 
-/* ── 기록 (잔디) ── */
-
-.archive-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--s24);
-}
-
-.archive-month {
-  font-family: var(--serif);
-  font-size: var(--md);
-  font-weight: 400;
-}
-
-.month-btn {
-  font-family: var(--sans);
-  font-size: var(--base);
-  color: var(--muted);
-  padding: 4px 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-sm);
-  transition: all 0.15s;
-}
-
-.month-btn:hover { color: var(--text); border-color: var(--text-2); }
 
 /* 통계 */
 .grass-stats {
@@ -769,75 +743,102 @@ main {
   letter-spacing: 0.04em;
 }
 
-/* 잔디 */
+
+/* ── 기록 (잔디) ── */
+
+.archive-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--s24);
+}
+
+.archive-month {
+  font-family: var(--serif);
+  font-size: var(--md);
+  font-weight: 400;
+}
+
+.month-btn {
+  font-family: var(--sans);
+  font-size: var(--base);
+  color: var(--muted);
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  transition: all 0.15s;
+}
+
+.month-btn:hover { color: var(--text); border-color: var(--text-2); }
+
+.grass-stats {
+  display: flex;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  margin-bottom: var(--s24);
+}
+
+.grass-stat {
+  flex: 1;
+  background: var(--surface);
+  padding: var(--s16);
+  text-align: center;
+}
+
+.grass-stat-value {
+  font-family: var(--serif);
+  font-size: var(--lg);
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.grass-stat-label {
+  font-family: var(--sans);
+  font-size: var(--xs);
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
 .grass-wrap {
-  overflow-x: auto;
-  padding-bottom: var(--s8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s8);
   margin-bottom: var(--s16);
 }
 
-.grass-container {
+.grass-row {
   display: flex;
-  gap: 4px;
-  min-width: max-content;
-}
-
-.grass-left {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-top: 20px;
-}
-
-.grass-day-label {
-  font-family: var(--sans);
-  font-size: 10px;
-  color: var(--muted);
-  height: 12px;
-  line-height: 12px;
-  width: 16px;
-  text-align: right;
-}
-
-.grass-right {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.grass-month-row {
-  display: flex;
-  gap: 2px;
-  height: 16px;
   align-items: center;
+  gap: var(--s8);
 }
 
 .grass-month-label {
   font-family: var(--sans);
-  font-size: 10px;
+  font-size: var(--xs);
   color: var(--muted);
-  min-width: 12px;
+  width: 28px;
+  flex-shrink: 0;
+  text-align: right;
 }
 
-.grass-grid {
+.grass-cells {
   display: flex;
-  gap: 2px;
-}
-
-.grass-col {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-wrap: wrap;
+  gap: 3px;
+  flex: 1;
 }
 
 .grass-cell {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
   flex-shrink: 0;
 }
 
-.grass-cell.empty   { background: transparent; }
 .grass-cell.future  { background: var(--line); opacity: 0.3; }
 .grass-cell.level-0 { background: var(--line); }
 .grass-cell.level-1 { background: #C8DFD0; }
@@ -855,7 +856,6 @@ main {
   align-items: center;
   justify-content: flex-end;
   gap: var(--s4);
-  margin-top: var(--s8);
 }
 
 .grass-legend span {
