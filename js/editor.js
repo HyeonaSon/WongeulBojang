@@ -2,8 +2,6 @@ let autoSaveTimer = null;
 let projectDropdownOpen = false;
 
 function initEditor() {
-  // 이벤트 리스너 초기화
-  document.removeEventListener('keydown', handleSaveShortcut);
 
   const projects = getActiveProjects();
   renderEditorUI(projects);
@@ -71,7 +69,6 @@ function renderEditorUI(projects) {
   `;
 
   document.addEventListener('click', handleDropdownOutsideClick);
-  document.addEventListener('keydown', handleSaveShortcut);
 
   renderEditorBody(defaultProject.id);
 }
@@ -275,13 +272,6 @@ function handleTabKey(e) {
   const end   = el.selectionEnd;
   el.value    = el.value.slice(0, start) + '  ' + el.value.slice(end);
   el.selectionStart = el.selectionEnd = start + 2;
-}
-
-function handleSaveShortcut(e) {
-  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-    e.preventDefault();
-    savePost();
-  }
 }
 
 function autoResizeTextarea() {
