@@ -2,51 +2,67 @@ function initDashboard() {
   const container      = document.getElementById('screen-dashboard');
   const projects       = getAllProjects();
   const activeProjects = projects.filter(p => p.deadline >= getToday());
+  const doneProjects   = projects.filter(p => p.deadline < getToday());
   const streak         = getStreak();
   const totalChars     = projects.reduce((s, p) =>
     s + getProjectWrittenChars(p.id), 0
   );
 
-  const savingsCards = activeProjects.map(p => {
-    const written      = getProjectWrittenChars(p.id);
-    const daily        = calcDailyTarget(
+  function renderCard(p, isDone = false) {
+    const written        = getProjectWrittenChars(p.id);
+    const daily          = calcDailyTarget(
       p.target_chars, written, p.deadline, p.write_days
     );
-    const daysLeft     = getDaysLeft(p.deadline);
-    const progress     = calcProgress(written, p.target_chars);
-    const catClass     = getCatClass(p.category);
+    const daysLeft       = getDaysLeft(p.deadline);
+    const progress       = calcProgress(written, p.target_chars);
+    const catClass       = getCatClass(p.category);
     const writeDaysLabel = getWriteDaysLabel(p.write_days);
-    const canWrite     = isWriteDay(p) && p.start_date <= getToday();
+    const canWrite       = isWriteDay(p) && p.start_date <= getToday();
+    const todayPost      = getPostByDateAndProject(getToday(), p.id);
+    const todayChars     = todayPost ? todayPost.char_count : 0;
+    const todayDone      = todayChars >= daily;
 
-    const todayPost    = getPostByDateAndProject(getToday(), p.id);
-    const todayChars   = todayPost ? todayPost.char_count : 0;
-    const todayDone    = todayChars >= daily;
+    const ddayClass = isDone ? 'done'
+      : daysLeft <= 7 ? 'urgent'
+      : todayDone ? 'done' : '';
+    const ddayText  = isDone ? '만기 완료'
+      : daysLeft === 0 ? '만기' : `D-${daysLeft}`;
 
-    // D-day 뱃지 스타일
-    const ddayClass = daysLeft <= 7 ? 'urgent' : todayDone ? 'done' : '';
-    const ddayText  = daysLeft === 0 ? '만기' : `D-${daysLeft}`;
-
-    // 오늘 납입 상태
     let depositStatus = '';
-    if (!canWrite && p.start_date > getToday()) {
-      depositStatus = `<span class="today-deposit-value not-today">납입 시작 전</span>`;
+    if (isDone) {
+      depositStatus = `
+        <span class="today-deposit-value done">
+          ${progress}% 달성 · ${written.toLocaleString()}자
+        </span>
+      `;
+    } else if (!canWrite && p.start_date > getToday()) {
+      depositStatus = `
+        <span class="today-deposit-value not-today">납입 시작 전</span>
+      `;
     } else if (!canWrite) {
-      depositStatus = `<span class="today-deposit-value not-today">납입일 아님</span>`;
+      depositStatus = `
+        <span class="today-deposit-value not-today">납입일 아님</span>
+      `;
     } else if (todayDone) {
-      depositStatus = `<span class="today-deposit-value done">
-        ${todayChars.toLocaleString()}자 납입 완료 ✓
-      </span>`;
+      depositStatus = `
+        <span class="today-deposit-value done">
+          ${todayChars.toLocaleString()}자 납입 완료 ✓
+        </span>
+      `;
     } else {
-      depositStatus = `<span class="today-deposit-value">
-        ${todayChars > 0
-          ? `${todayChars.toLocaleString()}자 / 목표 ${daily.toLocaleString()}자`
-          : `${daily.toLocaleString()}자 납입 필요`
-        }
-      </span>`;
+      depositStatus = `
+        <span class="today-deposit-value">
+          ${todayChars > 0
+            ? `${todayChars.toLocaleString()}자 / 목표 ${daily.toLocaleString()}자`
+            : `${daily.toLocaleString()}자 납입 필요`
+          }
+        </span>
+      `;
     }
 
     return `
-      <div class="savings-card" onclick="openProjectDetail('${p.id}')">
+      <div class="savings-card ${isDone ? 'savings-card-done' : ''}"
+           onclick="openProjectDetail('${p.id}')">
         <div class="savings-card-top">
           <div class="savings-card-info">
             <div class="savings-card-name">${escapeHtml(p.name)}</div>
@@ -69,12 +85,17 @@ function initDashboard() {
         </div>
 
         <div class="today-deposit">
-          <span class="today-deposit-label">오늘 납입</span>
+          <span class="today-deposit-label">
+            ${isDone ? '최종 결과' : '오늘 납입'}
+          </span>
           ${depositStatus}
         </div>
       </div>
     `;
-  }).join('');
+  }
+
+  const activeCards = activeProjects.map(p => renderCard(p, false)).join('');
+  const doneCards   = doneProjects.map(p => renderCard(p, true)).join('');
 
   container.innerHTML = `
     <div class="dashboard-header">
@@ -100,12 +121,19 @@ function initDashboard() {
       </button>
     </div>
 
-    ${savingsCards || `
+    ${activeCards || `
       <div class="empty-state">
         <div class="empty-state-icon">🏦</div>
         진행 중인 적금이 없어요.<br>새 적금을 개설해보세요.
       </div>
     `}
+
+    ${doneCards ? `
+      <div class="section-header" style="margin-top: var(--space-xl)">
+        <span class="section-title">완료된 적금</span>
+      </div>
+      ${doneCards}
+    ` : ''}
 
     <button class="fab" onclick="showNewProjectForm()">
       + 새 적금 개설하기
