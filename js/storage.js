@@ -9,9 +9,13 @@ function getAllProjects() {
 function getActiveProjects() {
   const today = getToday();
   return getAllProjects().filter(p => {
+    // 마감일이 지난 경우
     if (p.deadline < today) return false;
-    const written = getProjectWrittenChars(p.id);
-    return written < p.target_chars;
+    // 목표 달성했지만 오늘 쓴 글이 있으면 포함 (수정 가능하도록)
+    const written   = getProjectWrittenChars(p.id);
+    const todayPost = getPostByDateAndProject(today, p.id);
+    if (written >= p.target_chars && !todayPost) return false;
+    return true;
   });
 }
 
