@@ -1,3 +1,13 @@
+// ── 완료 판단 ─────────────────────────────────
+
+function isProjectDone(p) {
+  if (p.deadline < getToday()) return true;
+  const written = getProjectWrittenChars(p.id);
+  return written >= p.target_chars;
+}
+
+// ── 대시보드 ──────────────────────────────────
+
 function initDashboard() {
   const container  = document.getElementById('screen-dashboard');
   const projects   = getAllProjects();
@@ -6,18 +16,17 @@ function initDashboard() {
     s + getProjectWrittenChars(p.id), 0
   );
 
-  // 진행 중 / 완료 분리
-  const activeProjects = projects.filter(p => p.deadline >= getToday());
-  const doneProjects   = projects.filter(p => p.deadline < getToday());
+  const activeProjects = projects.filter(p => !isProjectDone(p));
+  const doneProjects   = projects.filter(p => isProjectDone(p));
 
   // ── 진행 중 정렬 ──────────────────────────
-  // 1순위: 오늘 납입 필요한데 아직 안 한 것 (납입일 O, 미납)
-  // 2순위: 오늘 납입 완료한 것
-  // 3순위: 오늘 납입일 아닌 것
-  // 4순위: 납입 시작 전
+  // 0: 오늘 납입 필요 (미납)
+  // 1: 오늘 납입 완료
+  // 2: 오늘 납입일 아님
+  // 3: 납입 시작 전
 
   function getCardPriority(p) {
-    if (p.start_date > getToday()) return 3;  // 납입 시작 전
+    if (p.start_date > getToday()) return 3;
 
     const canWrite   = isWriteDay(p);
     const written    = getProjectWrittenChars(p.id);
@@ -28,25 +37,25 @@ function initDashboard() {
     const todayChars = todayPost ? todayPost.char_count : 0;
     const todayDone  = todayChars >= daily;
 
-    if (canWrite && !todayDone) return 0;  // 오늘 납입 필요 — 최우선
-    if (canWrite && todayDone)  return 1;  // 오늘 납입 완료
-    return 2;                              // 납입일 아님
+    if (canWrite && !todayDone) return 0;
+    if (canWrite && todayDone)  return 1;
+    return 2;
   }
 
   const sortedActive = [...activeProjects].sort((a, b) => {
     const pa = getCardPriority(a);
     const pb = getCardPriority(b);
     if (pa !== pb) return pa - pb;
-    // 같은 우선순위면 마감일 가까운 순
     return a.deadline.localeCompare(b.deadline);
   });
 
-  // 완료된 적금은 최신 마감일 순
   const sortedDone = [...doneProjects].sort((a, b) =>
     b.deadline.localeCompare(a.deadline)
   );
 
-  function renderCard(p, isDone = false) {
+  // ── 카드 렌더링 ───────────────────────────
+
+  function renderCard(p, isDone) {
     const written        = getProjectWrittenChars(p.id);
     const daily          = calcDailyTarget(
       p.target_chars, written, p.deadline, p.write_days
@@ -59,11 +68,15 @@ function initDashboard() {
     const todayPost      = getPostByDateAndProject(getToday(), p.id);
     const todayChars     = todayPost ? todayPost.char_count : 0;
     const todayDone      = todayChars >= daily;
+    const achieved       = written >= p.target_chars;
 
-    const ddayClass = isDone ? 'done'
-      : daysLeft <= 7 ? 'urgent'
-      : todayDone ? 'done' : '';
-    const ddayText  = isDone ? '만기 완료'
+    const ddayClass = isDone     ? 'done'
+      : daysLeft <= 7            ? 'urgent'
+      : todayDone                ? 'done'
+      : '';
+
+    const ddayText = isDone
+      ? (achieved ? '목표 달성 🎉' : '만기 완료')
       : daysLeft === 0 ? '만기' : `D-${daysLeft}`;
 
     let depositStatus = '';
