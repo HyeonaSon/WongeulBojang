@@ -206,34 +206,36 @@ function submitNewProject() {
 // ── 적금 상세 ─────────────────────────────────
 
 function openProjectDetail(projectId) {
-  const project  = getProject(projectId);
-  const written  = getProjectWrittenChars(projectId);
-  const daily    = calcDailyTarget(
+  const project        = getProject(projectId);
+  const written        = getProjectWrittenChars(projectId);
+  const daily          = calcDailyTarget(
     project.target_chars, written, project.deadline, project.write_days
   );
-  const daysLeft = getDaysLeft(project.deadline);
-  const progress = calcProgress(written, project.target_chars);
-  const posts    = getPostsByProject(projectId);
-  const catClass = getCatClass(project.category);
+  const daysLeft       = getDaysLeft(project.deadline);
+  const progress       = calcProgress(written, project.target_chars);
+  const catClass       = getCatClass(project.category);
   const writeDaysLabel = getWriteDaysLabel(project.write_days);
+  const isDone         = project.deadline < getToday();
 
-  // 날짜 범위 생성 (시작일~오늘 또는 마감일 중 작은 것)
+  // 날짜 범위
   const rangeEnd = project.deadline < getToday() ? project.deadline : getToday();
   const allDates = dateRange(project.start_date, rangeEnd).reverse();
 
   const depositRows = allDates.map(dateStr => {
-    const post       = getPostByDateAndProject(dateStr, projectId);
     const dayOfWeek  = new Date(dateStr + 'T00:00:00').getDay();
     const isWritable = !project.write_days || project.write_days.length === 0
       || project.write_days.includes(dayOfWeek);
 
-    if (!isWritable) return ''; // 납입 요일 아니면 표시 안 함
+    if (!isWritable) return '';
+
+    const post = getPostByDateAndProject(dateStr, projectId);
 
     if (post) {
       const achieved = post.char_count >= daily;
+      const locked   = !isEditable(post);
       return `
         <div class="deposit-row"
-             onclick="openPost('${post.id}', ${!isEditable(post)})">
+             onclick="openPost(${JSON.stringify(post).replace(/"/g, '&quot;')}, ${locked})">
           <span class="deposit-row-date">${dateStr.slice(5)}</span>
           <span class="deposit-row-chars">${post.char_count.toLocaleString()}자</span>
           <span class="deposit-row-status ${achieved ? 'achieved' : 'missed'}">
@@ -257,7 +259,11 @@ function openProjectDetail(projectId) {
   container.innerHTML = `
     <div class="form-page-header">
       <button class="back-btn" onclick="initDashboard()">← 목록</button>
-      <button class="text-btn" onclick="showEditProjectForm('${projectId}')">수정</button>
+      ${!isDone
+        ? `<button class="text-btn"
+                   onclick="showEditProjectForm('${projectId}')">수정</button>`
+        : ''
+      }
     </div>
 
     <div class="project-hero">
@@ -266,7 +272,7 @@ function openProjectDetail(projectId) {
       <div class="project-hero-period">
         ${project.start_date} — ${project.deadline}
         · ${writeDaysLabel} 납입
-        · D-${daysLeft}
+        ${isDone ? '· 완료' : `· D-${daysLeft}`}
       </div>
     </div>
 
@@ -284,9 +290,14 @@ function openProjectDetail(projectId) {
         <div class="stat-cell-value">${daily.toLocaleString()}자</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-cell-label">잔여 분량</div>
+        <div class="stat-cell-label">
+          ${isDone ? '최종 분량' : '잔여 분량'}
+        </div>
         <div class="stat-cell-value">
-          ${Math.max(0, project.target_chars - written).toLocaleString()}자
+          ${isDone
+            ? `${charsToPages(written)}매`
+            : `${Math.max(0, project.target_chars - written).toLocaleString()}자`
+          }
         </div>
       </div>
     </div>
