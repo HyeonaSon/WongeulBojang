@@ -1,10 +1,9 @@
 function initHome() {
-  const el = document.getElementById('screen-home');
+  const el       = document.getElementById('screen-home');
   const projects = getAllProjects();
   const done     = projects.filter(p => isProjectDone(p));
   const active   = projects.filter(p => !isProjectDone(p));
 
-  // 진행 중 정렬 — 오늘 납입 필요한 것 먼저
   active.sort((a, b) => {
     const pa = cardPriority(a);
     const pb = cardPriority(b);
@@ -45,9 +44,11 @@ function initHome() {
 
 function cardPriority(p) {
   if (p.start_date > getToday()) return 3;
-  const canWrite   = isWriteDay(p);
-  const written    = getProjectWrittenChars(p.id);
-  const daily      = calcDailyTarget(p.target_chars, written, p.deadline, p.write_days);
+  const canWrite    = isWriteDay(p);
+  const prevWritten = getPostsByProject(p.id)
+    .filter(post => getDateStr(post.created_at) < getToday())
+    .reduce((s, post) => s + post.char_count, 0);
+  const daily      = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
   const todayPost  = getPostByDateAndProject(getToday(), p.id);
   const todayChars = todayPost ? todayPost.char_count : 0;
   if (canWrite && todayChars < daily) return 0;
@@ -72,19 +73,12 @@ function renderBalanceCard() {
   `;
 }
 
-function showProjectDetail(projectId) {
-  const p = getProject(projectId);
-
-  // 오늘 이전까지 쓴 글자 수 기준으로 하루 목표 계산
-  const allPosts    = getPostsByProject(projectId);
-  const prevWritten = allPosts
+function renderSavingsCard(p, isDone) {
+  const written     = getProjectWrittenChars(p.id);
+  const prevWritten = getPostsByProject(p.id)
     .filter(post => getDateStr(post.created_at) < getToday())
     .reduce((s, post) => s + post.char_count, 0);
-
-  const written  = getProjectWrittenChars(projectId); // 누적 총합 (통계용)
-  const daily    = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
-
-  // ... 나머지 코드 유지
+  const daily      = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
   const progress   = calcProgress(written, p.target_chars);
   const daysLeft   = getDaysLeft(p.deadline);
   const catClass   = getCatClass(p.category);
@@ -102,7 +96,7 @@ function showProjectDetail(projectId) {
     ? (achieved ? '목표 달성 🎉' : '만기 완료')
     : daysLeft === 0 ? 'D-0' : `D-${daysLeft}`;
 
-  let todayText = '';
+  let todayText  = '';
   let todayClass = '';
   if (isDone) {
     todayText  = `${progress}% 달성 · ${written.toLocaleString()}자`;
@@ -117,7 +111,7 @@ function showProjectDetail(projectId) {
     todayText  = `${todayChars.toLocaleString()}자 완료 ✓`;
     todayClass = 'done';
   } else {
-    todayText  = todayChars > 0
+    todayText = todayChars > 0
       ? `${todayChars.toLocaleString()} / ${daily.toLocaleString()}자`
       : `${daily.toLocaleString()}자 납입 필요`;
   }
@@ -176,16 +170,20 @@ function showNewProject() {
       <input class="form-input" id="f-chars" type="number"
              placeholder="0" oninput="onCharsChange()" />
       <div class="char-pad">
-        <button class="char-pad-btn" onclick="appendZeros('f-chars',2,onCharsChange)">00</button>
-        <button class="char-pad-btn" onclick="appendZeros('f-chars',3,onCharsChange)">000</button>
-        <button class="char-pad-btn" onclick="appendZeros('f-chars',4,onCharsChange)">0000</button>
+        <button class="char-pad-btn"
+                onclick="appendZeros('f-chars',2,onCharsChange)">00</button>
+        <button class="char-pad-btn"
+                onclick="appendZeros('f-chars',3,onCharsChange)">000</button>
+        <button class="char-pad-btn"
+                onclick="appendZeros('f-chars',4,onCharsChange)">0000</button>
       </div>
       <div id="cat-box"></div>
     </div>
 
     <div class="form-section">
       <label class="form-label">시작일</label>
-      <input class="form-input" id="f-start" type="date" value="${getToday()}" />
+      <input class="form-input" id="f-start" type="date"
+             value="${getToday()}" />
     </div>
 
     <div class="form-section">
@@ -246,10 +244,9 @@ function updateDaysLabel() {
 }
 
 function onCharsChange() {
-  const chars   = Number(document.getElementById('f-chars')?.value || 0);
-  const catBox  = document.getElementById('cat-box');
+  const chars  = Number(document.getElementById('f-chars')?.value || 0);
+  const catBox = document.getElementById('cat-box');
   if (!catBox) return;
-
   if (!chars) { catBox.innerHTML = ''; updatePreview(); return; }
 
   const pages = charsToPages(chars);
@@ -259,7 +256,9 @@ function onCharsChange() {
   catBox.innerHTML = `
     <div class="category-box">
       <span class="category-name ${cls}">${cat.name}</span>
-      <span class="category-desc">${chars.toLocaleString()}자 · ${pages}매 · ${cat.desc}</span>
+      <span class="category-desc">
+        ${chars.toLocaleString()}자 · ${pages}매 · ${cat.desc}
+      </span>
     </div>
   `;
   updatePreview();
@@ -313,18 +312,12 @@ function submitProject() {
 // ── 적금 상세 ─────────────────────────────────
 
 function showProjectDetail(projectId) {
-  const p = getProject(projectId);
-
-  // 오늘 이전까지 쓴 글자 수 기준으로 하루 목표 계산
-  const allPosts    = getPostsByProject(projectId);
-  const prevWritten = allPosts
+  const p           = getProject(projectId);
+  const written     = getProjectWrittenChars(projectId);
+  const prevWritten = getPostsByProject(projectId)
     .filter(post => getDateStr(post.created_at) < getToday())
     .reduce((s, post) => s + post.char_count, 0);
-
-  const written  = getProjectWrittenChars(projectId); // 누적 총합 (통계용)
   const daily    = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
-
-  // ... 나머지 코드 유지
   const progress = calcProgress(written, p.target_chars);
   const daysLeft = getDaysLeft(p.deadline);
   const catClass = getCatClass(p.category);
@@ -335,7 +328,7 @@ function showProjectDetail(projectId) {
   const rows = dateRange(p.start_date, rangeEnd)
     .reverse()
     .map(dateStr => {
-      const dow = new Date(dateStr + 'T00:00:00').getDay();
+      const dow      = new Date(dateStr + 'T00:00:00').getDay();
       const writable = !p.write_days || p.write_days.length === 0
         || p.write_days.includes(dow);
       if (!writable) return '';
@@ -372,7 +365,8 @@ function showProjectDetail(projectId) {
     <div class="form-header">
       <button class="back-btn" onclick="initHome()">← 목록</button>
       ${!isDone
-        ? `<button class="text-btn" onclick="showEditProject('${projectId}')">수정</button>`
+        ? `<button class="text-btn"
+                   onclick="showEditProject('${projectId}')">수정</button>`
         : ''}
     </div>
 
@@ -430,7 +424,8 @@ function showEditProject(projectId) {
   const el = document.getElementById('screen-home');
   el.innerHTML = `
     <div class="form-header">
-      <button class="back-btn" onclick="showProjectDetail('${projectId}')">← 취소</button>
+      <button class="back-btn"
+              onclick="showProjectDetail('${projectId}')">← 취소</button>
       <span class="form-title">적금 수정</span>
     </div>
 
@@ -445,9 +440,12 @@ function showEditProject(projectId) {
       <input class="form-input" id="f-chars" type="number"
              value="${p.target_chars}" oninput="onCharsChange()" />
       <div class="char-pad">
-        <button class="char-pad-btn" onclick="appendZeros('f-chars',2,onCharsChange)">00</button>
-        <button class="char-pad-btn" onclick="appendZeros('f-chars',3,onCharsChange)">000</button>
-        <button class="char-pad-btn" onclick="appendZeros('f-chars',4,onCharsChange)">0000</button>
+        <button class="char-pad-btn"
+                onclick="appendZeros('f-chars',2,onCharsChange)">00</button>
+        <button class="char-pad-btn"
+                onclick="appendZeros('f-chars',3,onCharsChange)">000</button>
+        <button class="char-pad-btn"
+                onclick="appendZeros('f-chars',4,onCharsChange)">0000</button>
       </div>
       <div id="cat-box"></div>
     </div>
@@ -483,9 +481,8 @@ function showEditProject(projectId) {
 
     <div id="preview-box"></div>
 
-    <button class="submit-btn" onclick="submitEditProject('${projectId}')">
-      저장하기
-    </button>
+    <button class="submit-btn"
+            onclick="submitEditProject('${projectId}')">저장하기</button>
     <button class="danger-btn"
             style="display:block;width:100%;text-align:center;
                    margin-top:var(--s16);padding:var(--s12)"
@@ -528,7 +525,7 @@ function confirmDelete(projectId) {
 // ── 글 모달 ───────────────────────────────────
 
 function showPostModal(postId) {
-  const post    = JSON.parse(localStorage.getItem(`post_${postId}`));
+  const post = JSON.parse(localStorage.getItem(`post_${postId}`));
   if (!post) return;
 
   const project  = getProject(post.project_id);
@@ -547,26 +544,36 @@ function showPostModal(postId) {
 
   modal.innerHTML = `
     <div style="background:var(--surface);width:100%;max-width:var(--max-w);
-                max-height:85vh;overflow-y:auto;border-radius:var(--r-lg) var(--r-lg) 0 0;
+                max-height:85vh;overflow-y:auto;
+                border-radius:var(--r-lg) var(--r-lg) 0 0;
                 padding:var(--s24);transform:translateY(100%);
                 transition:transform 0.3s ease;">
-      <div style="width:36px;height:4px;background:var(--line);border-radius:2px;
-                  margin:0 auto var(--s16)"></div>
+      <div style="width:36px;height:4px;background:var(--line);
+                  border-radius:2px;margin:0 auto var(--s16)"></div>
 
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;
-                  padding-bottom:var(--s16);border-bottom:1px solid var(--line);
-                  margin-bottom:var(--s16)">
+      <div style="display:flex;justify-content:space-between;
+                  align-items:flex-start;padding-bottom:var(--s16);
+                  border-bottom:1px solid var(--line);margin-bottom:var(--s16)">
         <div>
-          <div class="post-card-date">${formatDate(getDateStr(post.created_at))}</div>
+          <div style="font-family:var(--sans);font-size:var(--sm);
+                      color:var(--muted);margin-bottom:4px">
+            ${formatDate(getDateStr(post.created_at))}
+          </div>
           ${project ? `
-            <div class="post-card-project" style="margin-top:4px">
-              <div class="post-dot" style="background:${colorVar}"></div>
+            <div style="display:flex;align-items:center;gap:6px;
+                        font-family:var(--sans);font-size:var(--sm);
+                        color:var(--text-2)">
+              <div style="width:8px;height:8px;border-radius:50%;
+                          background:${colorVar};flex-shrink:0"></div>
               <span>${escapeHtml(project.name)}</span>
             </div>
           ` : ''}
         </div>
         <div style="text-align:right">
-          <div class="post-card-chars">${post.char_count.toLocaleString()}자</div>
+          <div style="font-family:var(--serif);font-size:var(--lg);
+                      color:var(--text)">
+            ${post.char_count.toLocaleString()}자
+          </div>
           ${editable ? `
             <div style="font-family:var(--sans);font-size:var(--xs);
                         color:var(--accent-2);margin-top:4px">수정 가능</div>
@@ -580,10 +587,14 @@ function showPostModal(postId) {
         ${escapeHtml(post.body).replace(/\n/g, '<br>')}
       </div>
 
-      <div style="display:flex;justify-content:space-between;align-items:center;
-                  padding-top:var(--s16);border-top:1px solid var(--line);
-                  font-family:var(--sans);font-size:var(--sm);color:var(--muted)">
-        <span>${editable ? '납입 메뉴에서 수정할 수 있어요.' : '수정할 수 없는 글이에요.'}</span>
+      <div style="display:flex;justify-content:space-between;
+                  align-items:center;padding-top:var(--s16);
+                  border-top:1px solid var(--line);
+                  font-family:var(--sans);font-size:var(--sm);
+                  color:var(--muted)">
+        <span>
+          ${editable ? '납입 메뉴에서 수정할 수 있어요.' : '수정할 수 없는 글이에요.'}
+        </span>
         <button class="back-btn" onclick="closePostModal()">닫기</button>
       </div>
     </div>
@@ -626,7 +637,8 @@ function showSettings() {
 
     <div style="margin-bottom:var(--s32)">
       <div class="brand" style="margin-bottom:var(--s8)">원글보장</div>
-      <div style="font-family:var(--sans);font-size:var(--sm);color:var(--muted)">
+      <div style="font-family:var(--sans);font-size:var(--sm);
+                  color:var(--muted)">
         글을 적금처럼 모으세요
       </div>
     </div>
@@ -663,7 +675,8 @@ function showSettings() {
            onchange="handleImport(this)" />
 
     <button class="danger-btn"
-            style="display:block;width:100%;text-align:center;padding:var(--s12)"
+            style="display:block;width:100%;text-align:center;
+                   padding:var(--s12)"
             onclick="confirmClear()">
       전체 데이터 삭제
     </button>
