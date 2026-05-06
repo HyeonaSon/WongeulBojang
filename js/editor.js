@@ -102,15 +102,17 @@ function pickProject(id) {
 }
 
 function renderBody(projectId) {
-  const goalEl = document.getElementById('ed-goal');
-  const bodyEl = document.getElementById('ed-body');
-  if (!goalEl || !bodyEl) return;
-
-  const p        = getProject(projectId);
+  const p = getProject(projectId);
   if (!p) return;
 
-  const written  = getProjectWrittenChars(projectId);
-  const daily    = calcDailyTarget(p.target_chars, written, p.deadline, p.write_days);
+  // 오늘 이전까지 쓴 글자 수만 계산
+  const allPosts     = getPostsByProject(projectId);
+  const prevWritten  = allPosts
+    .filter(post => getDateStr(post.created_at) < getToday())
+    .reduce((s, post) => s + post.char_count, 0);
+
+  // 하루 목표는 어제까지 기준으로 고정
+  const daily    = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
   const label    = getWriteDaysLabel(p.write_days);
   const todayPost = getPostByDateAndProject(getToday(), projectId);
   const canWrite = (isWriteDay(p) && p.start_date <= getToday()) || !!todayPost;
