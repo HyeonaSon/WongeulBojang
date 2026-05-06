@@ -101,25 +101,21 @@ function selectProject(projectId) {
   const project  = projects.find(p => p.id === projectId);
   if (!project) return;
 
-  // 선택된 이름 업데이트
   const nameEl = document.getElementById('selected-project-name');
   if (nameEl) nameEl.textContent = project.name;
 
-  // 옵션 선택 표시
   document.querySelectorAll('.custom-select-option').forEach(el => {
     el.classList.toggle('selected', el.dataset.id === projectId);
   });
 
-  // 드롭다운 닫기
   const dropdown = document.getElementById('project-dropdown');
   const arrow    = document.getElementById('select-arrow');
   if (dropdown) dropdown.hidden = true;
   if (arrow)    arrow.textContent = '▾';
   projectDropdownOpen = false;
 
-  // 에디터 본문 업데이트
-  const todayPost = getPostByDateAndProject(getToday(), projectId);
-  renderEditorBody(projectId, todayPost);
+  // ← post 파라미터 없이 호출 — 내부에서 이 프로젝트 오늘 글 직접 조회
+  renderEditorBody(projectId, null);
 }
 
 function handleDropdownOutsideClick(e) {
@@ -148,6 +144,9 @@ function renderEditorBody(projectId, post) {
   const canWrite   = isWriteDay(project) && project.start_date <= getToday();
   const label      = getWriteDaysLabel(project.write_days);
 
+  // ← 이 프로젝트의 오늘 글만 불러오기
+  const todayPost  = getPostByDateAndProject(getToday(), projectId);
+
   // 납입 요일 뱃지
   if (badgeEl) {
     badgeEl.innerHTML = `
@@ -173,10 +172,64 @@ function renderEditorBody(projectId, post) {
         </div>
       `;
     }
-    window._dailyTarget  = 0;
+    window._dailyTarget      = 0;
     window._currentProjectId = projectId;
     return;
   }
+
+  const currentChars = todayPost ? todayPost.char_count : 0;
+  const progress     = calcProgress(currentChars, daily);
+
+  if (goalWrap) {
+    goalWrap.innerHTML = `
+      <div class="deposit-goal">
+        <div class="deposit-goal-label">
+          <span>오늘 납입 목표</span>
+          <span id="daily-goal-text">
+            ${currentChars.toLocaleString()} / ${daily.toLocaleString()}자
+          </span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill ${progress >= 100 ? 'complete' : ''}"
+               id="daily-progress-fill"
+               style="width:${progress}%"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (bodyWrap) {
+    bodyWrap.innerHTML = `
+      <textarea
+        id="body"
+        placeholder="오늘의 글을 납입하세요."
+        spellcheck="false"
+      >${todayPost ? escapeHtml(todayPost.body) : ''}</textarea>
+
+      <div class="editor-footer">
+        <span class="editor-char-count" id="char-count">
+          오늘 ${currentChars.toLocaleString()}자
+        </span>
+        <div class="editor-actions">
+          <span class="save-status" id="save-status"></span>
+          <button class="deposit-btn" id="save-btn" onclick="savePost()">
+            납입
+          </button>
+        </div>
+      </div>
+    `;
+
+    if (todayPost) {
+      document.getElementById('save-btn').dataset.postId = todayPost.id;
+    }
+
+    bindEditorEvents();
+    autoResizeTextarea();
+  }
+
+  window._dailyTarget      = daily;
+  window._currentProjectId = projectId;
+}
 
   const currentChars = post ? post.char_count : 0;
   const progress     = calcProgress(currentChars, daily);
