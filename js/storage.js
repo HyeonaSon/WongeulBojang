@@ -7,21 +7,24 @@ function getAllProjects() {
 }
 
 function getActiveProjects() {
-  const today = getToday();
+  const today    = getToday();
+  const allPosts = getAllPosts();
+
+  // 오늘 쓴 글의 프로젝트 ID 목록
+  const todayProjectIds = new Set(
+    allPosts
+      .filter(p => getDateStr(p.created_at) === today)
+      .map(p => p.project_id)
+  );
+
   return getAllProjects().filter(p => {
-    // 마감일이 지나지 않은 것
+    // 마감일 안 지나고 목표 미달성 → 무조건 포함
     if (p.deadline >= today) {
       const written = getProjectWrittenChars(p.id);
-      if (written >= p.target_chars) {
-        // 목표 달성했지만 오늘 쓴 글 있으면 포함
-        const todayPost = getPostByDateAndProject(today, p.id);
-        return !!todayPost;
-      }
-      return true;
+      if (written < p.target_chars) return true;
     }
-    // 마감일이 지났어도 오늘 쓴 글 있으면 포함
-    const todayPost = getPostByDateAndProject(today, p.id);
-    return !!todayPost;
+    // 위 조건 아니어도 오늘 이 프로젝트에 쓴 글 있으면 포함
+    return todayProjectIds.has(p.id);
   });
 }
 
