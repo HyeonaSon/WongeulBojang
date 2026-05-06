@@ -268,12 +268,14 @@ function onDeadlineChange() { updatePreview(); }
 
 function updatePreview() {
   const chars    = Number(document.getElementById('f-chars')?.value || 0);
+  const start    = document.getElementById('f-start')?.value;
   const deadline = document.getElementById('f-deadline')?.value;
   const box      = document.getElementById('preview-box');
   if (!box) return;
-  if (!chars || !deadline) { box.innerHTML = ''; return; }
+  if (!chars || !deadline || !start) { box.innerHTML = ''; return; }
 
-  const days  = countWritableDays(getToday(), deadline, window._days || []);
+  // 시작일 ~ 마감일 기준
+  const days  = countWritableDays(start, deadline, window._days || []);
   const daily = Math.ceil(chars / days);
 
   box.innerHTML = `
@@ -292,7 +294,6 @@ function updatePreview() {
     </div>
   `;
 }
-
 function submitProject() {
   const name     = document.getElementById('f-name').value.trim();
   const chars    = Number(document.getElementById('f-chars').value);
