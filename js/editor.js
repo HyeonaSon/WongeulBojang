@@ -243,8 +243,10 @@ function updateBar() {
 function resizeTA() {
   const ta = document.getElementById('body');
   if (!ta) return;
+  const scrollY = window.scrollY;  // 현재 스크롤 위치 저장
   ta.style.height = 'auto';
   ta.style.height = ta.scrollHeight + 'px';
+  window.scrollTo(0, scrollY);     // 스크롤 위치 복원
 }
 
 function savePost(silent = false) {
