@@ -1,5 +1,6 @@
 let _autoSave  = null;
 let _projectId = null;
+let _daily     = 0;  // ← 추가 — 렌더링 시 고정된 하루 목표
 
 function initEditor() {
   document.removeEventListener('click', _dropdownClose);
