@@ -9,13 +9,19 @@ function getAllProjects() {
 function getActiveProjects() {
   const today = getToday();
   return getAllProjects().filter(p => {
-    // 마감일이 지난 경우
-    if (p.deadline < today) return false;
-    // 목표 달성했지만 오늘 쓴 글이 있으면 포함 (수정 가능하도록)
-    const written   = getProjectWrittenChars(p.id);
+    // 마감일이 지나지 않은 것
+    if (p.deadline >= today) {
+      const written = getProjectWrittenChars(p.id);
+      if (written >= p.target_chars) {
+        // 목표 달성했지만 오늘 쓴 글 있으면 포함
+        const todayPost = getPostByDateAndProject(today, p.id);
+        return !!todayPost;
+      }
+      return true;
+    }
+    // 마감일이 지났어도 오늘 쓴 글 있으면 포함
     const todayPost = getPostByDateAndProject(today, p.id);
-    if (written >= p.target_chars && !todayPost) return false;
-    return true;
+    return !!todayPost;
   });
 }
 
