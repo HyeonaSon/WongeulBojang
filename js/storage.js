@@ -7,7 +7,12 @@ function getAllProjects() {
 }
 
 function getActiveProjects() {
-  return getAllProjects().filter(p => p.deadline >= getToday());
+  const today = getToday();
+  return getAllProjects().filter(p => {
+    if (p.deadline < today) return false;
+    const written = getProjectWrittenChars(p.id);
+    return written < p.target_chars;
+  });
 }
 
 function getProject(id) {
