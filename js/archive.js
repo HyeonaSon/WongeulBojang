@@ -10,7 +10,7 @@ function initArchive() {
 }
 
 function renderArchive() {
-  const container = document.getElementById('screen-archive');
+  const container      = document.getElementById('screen-archive');
   const { start, end } = getMonthRange(archiveYear, archiveMonth);
 
   const posts    = getPostsByDateRange(start, end);
@@ -27,14 +27,16 @@ function renderArchive() {
     const project = projects.find(pr => pr.id === p.project_id);
     if (!project) return;
     const written = getProjectWrittenChars(project.id);
-    const daily   = calcDailyTarget(project.target_chars, written, project.deadline);
+    const daily   = calcDailyTarget(
+      project.target_chars, written, project.deadline, project.write_days
+    );
     doneByDate[d] = p.char_count >= daily;
   });
 
-  const monthLabel = formatMonthLabel(start);
-  const firstDay   = new Date(archiveYear, archiveMonth, 1).getDay();
-  const lastDate   = new Date(archiveYear, archiveMonth + 1, 0).getDate();
-  const dows       = ['일', '월', '화', '수', '목', '금', '토'];
+  const monthLabel     = formatMonthLabel(start);
+  const firstDay       = new Date(archiveYear, archiveMonth, 1).getDay();
+  const lastDate       = new Date(archiveYear, archiveMonth + 1, 0).getDate();
+  const dows           = ['일', '월', '화', '수', '목', '금', '토'];
 
   // 이 달에 걸쳐있는 프로젝트 (최대 3개)
   const activeProjects = projects
@@ -44,7 +46,7 @@ function renderArchive() {
   let cells = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
 
   for (let i = 0; i < firstDay; i++) {
-    cells += `<div class="cal-cell empty"></div>`;
+    cells += `<div class="cal-cell"></div>`;
   }
 
   for (let d = 1; d <= lastDate; d++) {
@@ -54,6 +56,7 @@ function renderArchive() {
     const isToday    = dateStr === getToday();
     const isSelected = dateStr === selectedDate;
 
+    // 프로젝트 타임라인 바
     const bars = activeProjects.map(p => {
       const inRange    = dateStr >= p.start_date && dateStr <= p.deadline;
       const isStart    = dateStr === p.start_date;
@@ -65,48 +68,58 @@ function renderArchive() {
 
       return `
         <div class="cal-bar ${hasPost ? 'active-bar' : 'inactive-bar'}
-                            ${isStart ? 'bar-start' : ''}
-                            ${isEnd ? 'bar-end' : ''}"
-             style="background: var(--c-cat-${colorClass})">
+          ${isStart ? 'bar-start' : ''}
+          ${isEnd ? 'bar-end' : ''}"
+          style="background: var(--c-cat-${colorClass})">
         </div>
       `;
     }).join('');
+
+    // 납입일 여부 (어떤 프로젝트든 납입 가능한 날)
+    const isWritable = activeProjects.some(p => {
+      if (dateStr < p.start_date || dateStr > p.deadline) return false;
+      if (!p.write_days || p.write_days.length === 0) return true;
+      return p.write_days.includes(new Date(dateStr + 'T00:00:00').getDay());
+    });
 
     cells += `
       <div class="cal-cell
         ${post ? 'has-post' : ''}
         ${isToday ? 'today' : ''}
-        ${done ? 'done' : ''}
-        ${isSelected ? 'selected' : ''}"
+        ${isSelected ? 'selected' : ''}
+        ${post || isToday ? 'clickable' : ''}
+        ${!isWritable && !post ? 'not-write-day' : ''}"
         onclick="selectDate('${dateStr}')">
         <span class="cal-date">${d}</span>
         <div class="cal-bars">${bars}</div>
+        ${done ? '<span class="cal-check">✓</span>' : ''}
       </div>
     `;
   }
 
+  // 범례
   const legend = activeProjects.map(p => {
     const colorClass = CATEGORY_CLASS[p.category] || 'jogak';
     return `
-      <div class="project-period-bar">
-        <div class="period-color"
+      <div class="cal-legend-item">
+        <div class="cal-legend-color"
              style="background: var(--c-cat-${colorClass})"></div>
-        <span class="period-name">${escapeHtml(p.name)}</span>
-        <span class="period-range">${p.start_date} — ${p.deadline}</span>
+        <span class="cal-legend-name">${escapeHtml(p.name)}</span>
+        <span class="cal-legend-range">${p.start_date} — ${p.deadline}</span>
       </div>
     `;
   }).join('');
 
   container.innerHTML = `
-    <div class="archive-nav">
-      <button onclick="moveArchive(-1)">←</button>
-      <span>${monthLabel}</span>
-      <button onclick="moveArchive(1)">→</button>
+    <div class="archive-header">
+      <button class="archive-nav-btn" onclick="moveArchive(-1)">←</button>
+      <span class="archive-month">${monthLabel}</span>
+      <button class="archive-nav-btn" onclick="moveArchive(1)">→</button>
     </div>
 
     <div class="cal-grid">${cells}</div>
 
-    ${legend ? `<div class="project-period-list">${legend}</div>` : ''}
+    ${legend ? `<div class="cal-legend">${legend}</div>` : ''}
 
     <div id="archive-detail"></div>
   `;
@@ -127,7 +140,7 @@ function selectDate(dateStr) {
 }
 
 function renderDateDetail(post, projects) {
-  const detail = document.getElementById('archive-detail');
+  const detail     = document.getElementById('archive-detail');
   if (!detail) return;
 
   const project    = projects.find(p => p.id === post.project_id);
@@ -136,40 +149,40 @@ function renderDateDetail(post, projects) {
   const colorClass = project ? (CATEGORY_CLASS[project.category] || 'jogak') : 'jogak';
 
   detail.innerHTML = `
-    <div class="archive-detail-card">
-      <div class="archive-detail-header">
+    <div class="detail-card">
+      <div class="detail-card-header">
         <div>
-          <div class="archive-detail-date">${formatDisplayDate(dateStr)}</div>
+          <div class="detail-date">${formatDisplayDate(dateStr)}</div>
           ${project ? `
-            <div class="archive-detail-project">
-              <div class="period-color"
+            <div class="detail-project">
+              <div class="detail-dot"
                    style="background: var(--c-cat-${colorClass})"></div>
               <span>${escapeHtml(project.name)}</span>
               <span class="cat-${colorClass}">${project.category}</span>
             </div>
           ` : ''}
         </div>
-        <div class="archive-detail-meta">
-          <span class="archive-detail-chars">${post.char_count.toLocaleString()}자</span>
-          <span class="post-badge ${locked ? 'badge-locked' : 'badge-editable'}">
+        <div class="detail-meta">
+          <span class="detail-chars">${post.char_count.toLocaleString()}자</span>
+          <span class="detail-badge ${locked ? 'locked' : 'editable'}">
             ${locked ? '잠김' : '수정 가능'}
           </span>
         </div>
       </div>
 
-      <div class="archive-detail-body">
+      <div class="detail-body">
         ${locked
-          ? `<div class="archive-detail-text">
+          ? `<div class="detail-text">
                ${escapeHtml(post.body).replace(/\n/g, '<br>')}
              </div>`
-          : `<textarea class="archive-detail-input" id="detail-body"
+          : `<textarea class="detail-textarea" id="detail-body"
                spellcheck="false">${escapeHtml(post.body)}</textarea>`
         }
       </div>
 
       ${!locked ? `
-        <div class="archive-detail-footer">
-          <span id="detail-save-status"></span>
+        <div class="detail-footer">
+          <span class="detail-save-status" id="detail-save-status"></span>
           <button class="modal-save-btn"
                   onclick="saveFromDetail('${post.id}', '${post.project_id}')">
             저장
@@ -198,9 +211,12 @@ function saveFromDetail(postId, projectId) {
   const body = document.getElementById('detail-body')?.value.trim();
   if (!body) return;
 
-  document.getElementById('detail-save-status').textContent = '저장 중...';
+  const statusEl = document.getElementById('detail-save-status');
+  if (statusEl) statusEl.textContent = '저장 중...';
+
   updatePost(postId, projectId, body);
-  document.getElementById('detail-save-status').textContent = '저장됨';
+
+  if (statusEl) statusEl.textContent = '저장됨';
   setTimeout(() => {
     const el = document.getElementById('detail-save-status');
     if (el) el.textContent = '';
@@ -225,11 +241,14 @@ function openPost(post, locked) {
 
   modal.innerHTML = `
     <div class="modal">
+      <div class="modal-handle"></div>
       <div class="modal-header">
-        <span class="post-date">${formatDisplayDate(getDateStr(post.created_at))}</span>
+        <span class="detail-date">
+          ${formatDisplayDate(getDateStr(post.created_at))}
+        </span>
         <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
-      <div class="modal-body-wrap">
+      <div>
         ${locked
           ? `<div class="modal-post-body">
                ${escapeHtml(post.body).replace(/\n/g, '<br>')}
@@ -265,7 +284,9 @@ function openPost(post, locked) {
     }
   }
 
-  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  modal.addEventListener('click', e => {
+    if (e.target === modal) closeModal();
+  });
   document.addEventListener('keydown', handleModalEsc);
   requestAnimationFrame(() => modal.classList.add('open'));
 }
@@ -283,7 +304,7 @@ function closeModal() {
   if (!modal) return;
   modal.classList.remove('open');
   document.removeEventListener('keydown', handleModalEsc);
-  setTimeout(() => modal.remove(), 200);
+  setTimeout(() => modal.remove(), 300);
 }
 
 function handleModalEsc(e) {
