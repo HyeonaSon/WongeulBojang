@@ -3,10 +3,13 @@ let projectDropdownOpen = false;
 
 function initEditor() {
   const today    = getToday();
-  const projects = getActiveProjects(); // 만기 안 된 것만
-  const todayPost = getPostByDate(today);
+  const projects = getActiveProjects();
 
-  renderEditorUI(todayPost, projects);
+  // 프로젝트 무관하게 오늘 글을 가져오는 게 아니라
+  // 선택된 프로젝트의 오늘 글을 가져와야 함
+  // → 초기엔 post 없이 시작, 프로젝트 선택 시 불러오도록
+
+  renderEditorUI(null, projects);
 }
 
 function renderEditorUI(post, projects) {
