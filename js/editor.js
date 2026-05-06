@@ -1,8 +1,9 @@
 let autoSaveTimer = null;
+let projectDropdownOpen = false;
 
 function initEditor() {
-  const today     = getToday();
-  const projects  = getActiveProjects();
+  const today    = getToday();
+  const projects = getActiveProjects(); // 만기 안 된 것만
   const todayPost = getPostByDate(today);
 
   renderEditorUI(todayPost, projects);
@@ -27,20 +28,44 @@ function renderEditorUI(post, projects) {
     return;
   }
 
-  const options = projects.map(p => `
-    <option value="${p.id}" ${post?.project_id === p.id ? 'selected' : ''}>
-      ${escapeHtml(p.name)}
-    </option>
-  `).join('');
+  // 오늘 글이 있으면 해당 프로젝트 기본 선택
+  const defaultProject = post
+    ? projects.find(p => p.id === post.project_id) || projects[0]
+    : projects[0];
 
   screen.innerHTML = `
     <div class="editor-header">
       <div class="editor-date">${formatDisplayDate(getToday())}</div>
       <div class="editor-project-select">
-        <select id="project-select" onchange="onProjectChange()">
-          <option value="">적금 선택</option>
-          ${options}
-        </select>
+        <div class="custom-select-wrap" id="custom-select-wrap">
+          <button class="custom-select-trigger" id="custom-select-trigger"
+                  onclick="toggleProjectDropdown()">
+            <span id="selected-project-name">
+              ${defaultProject ? escapeHtml(defaultProject.name) : '적금 선택'}
+            </span>
+            <span class="custom-select-arrow" id="select-arrow">▾</span>
+          </button>
+          <div class="custom-select-dropdown" id="project-dropdown" hidden>
+            ${projects.map(p => {
+              const catClass = getCatClass(p.category);
+              const isSelected = defaultProject && p.id === defaultProject.id;
+              return `
+                <div class="custom-select-option ${isSelected ? 'selected' : ''}"
+                     data-id="${p.id}"
+                     onclick="selectProject('${p.id}')">
+                  <div class="custom-option-name">${escapeHtml(p.name)}</div>
+                  <div class="custom-option-meta">
+                    <span class="${catClass}">${p.category}</span>
+                    <span>·</span>
+                    <span>${getWriteDaysLabel(p.write_days)}</span>
+                    <span>·</span>
+                    <span>D-${getDaysLeft(p.deadline)}</span>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
         <div id="write-day-badge"></div>
       </div>
     </div>
@@ -49,30 +74,68 @@ function renderEditorUI(post, projects) {
     <div id="editor-body-wrap"></div>
   `;
 
-  if (post) {
-    const saveBtn = document.getElementById('save-btn');
-    if (saveBtn) saveBtn.dataset.postId = post.id;
-  }
+  // 드롭다운 외부 클릭 닫기
+  document.addEventListener('click', handleDropdownOutsideClick);
 
-  onProjectChange();
+  // 기본 프로젝트로 에디터 초기화
+  if (defaultProject) {
+    renderEditorBody(defaultProject.id, post);
+  }
 }
 
-function onProjectChange() {
-  const selectEl   = document.getElementById('project-select');
-  const badgeEl    = document.getElementById('write-day-badge');
-  const goalWrap   = document.getElementById('deposit-goal-wrap');
-  const bodyWrap   = document.getElementById('editor-body-wrap');
+function toggleProjectDropdown() {
+  const dropdown = document.getElementById('project-dropdown');
+  const arrow    = document.getElementById('select-arrow');
+  if (!dropdown) return;
 
-  if (!selectEl) return;
+  projectDropdownOpen = !projectDropdownOpen;
+  dropdown.hidden     = !projectDropdownOpen;
+  arrow.textContent   = projectDropdownOpen ? '▴' : '▾';
+}
 
-  const projectId = selectEl.value;
+function selectProject(projectId) {
+  const projects = getActiveProjects();
+  const project  = projects.find(p => p.id === projectId);
+  if (!project) return;
 
-  if (!projectId) {
-    if (badgeEl)  badgeEl.innerHTML = '';
-    if (goalWrap) goalWrap.innerHTML = '';
-    if (bodyWrap) bodyWrap.innerHTML = '';
-    return;
+  // 선택된 이름 업데이트
+  const nameEl = document.getElementById('selected-project-name');
+  if (nameEl) nameEl.textContent = project.name;
+
+  // 옵션 선택 표시
+  document.querySelectorAll('.custom-select-option').forEach(el => {
+    el.classList.toggle('selected', el.dataset.id === projectId);
+  });
+
+  // 드롭다운 닫기
+  const dropdown = document.getElementById('project-dropdown');
+  const arrow    = document.getElementById('select-arrow');
+  if (dropdown) dropdown.hidden = true;
+  if (arrow)    arrow.textContent = '▾';
+  projectDropdownOpen = false;
+
+  // 에디터 본문 업데이트
+  const todayPost = getPostByDateAndProject(getToday(), projectId);
+  renderEditorBody(projectId, todayPost);
+}
+
+function handleDropdownOutsideClick(e) {
+  const wrap = document.getElementById('custom-select-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const dropdown = document.getElementById('project-dropdown');
+    const arrow    = document.getElementById('select-arrow');
+    if (dropdown) dropdown.hidden = true;
+    if (arrow)    arrow.textContent = '▾';
+    projectDropdownOpen = false;
   }
+}
+
+function renderEditorBody(projectId, post) {
+  const badgeEl  = document.getElementById('write-day-badge');
+  const goalWrap = document.getElementById('deposit-goal-wrap');
+  const bodyWrap = document.getElementById('editor-body-wrap');
+
+  if (!projectId) return;
 
   const project    = getProject(projectId);
   const written    = getProjectWrittenChars(projectId);
@@ -80,40 +143,39 @@ function onProjectChange() {
     project.target_chars, written, project.deadline, project.write_days
   );
   const canWrite   = isWriteDay(project) && project.start_date <= getToday();
-  const todayPost  = getPostByDateAndProject(getToday(), projectId);
   const label      = getWriteDaysLabel(project.write_days);
 
   // 납입 요일 뱃지
   if (badgeEl) {
     badgeEl.innerHTML = `
       <span class="write-day-badge ${canWrite ? 'available' : 'unavailable'}">
-        ${label} 납입${canWrite ? ' 가능' : ' 불가'}
+        ${label}${canWrite ? ' ✓' : ' ✗'}
       </span>
     `;
   }
 
-  // 납입 불가 날 (오늘이 납입 요일 아님)
+  // 납입 불가
   if (!canWrite) {
     if (goalWrap) goalWrap.innerHTML = '';
     if (bodyWrap) {
-      const nextWriteDay = getNextWriteDay(project);
+      const nextDay = getNextWriteDay(project);
       bodyWrap.innerHTML = `
         <div class="editor-locked">
           <div class="editor-locked-icon">📅</div>
           <div class="editor-locked-title">오늘은 납입일이 아니에요</div>
           <div class="editor-locked-desc">
             납입 요일: ${label}<br>
-            ${nextWriteDay ? `다음 납입일: ${nextWriteDay}` : ''}
+            ${nextDay ? `다음 납입일: ${nextDay}` : ''}
           </div>
         </div>
       `;
     }
-    window._dailyTarget = 0;
+    window._dailyTarget  = 0;
+    window._currentProjectId = projectId;
     return;
   }
 
-  // 이미 오늘 납입 완료
-  const currentChars = todayPost ? todayPost.char_count : 0;
+  const currentChars = post ? post.char_count : 0;
   const progress     = calcProgress(currentChars, daily);
 
   // 납입 목표 바
@@ -135,14 +197,14 @@ function onProjectChange() {
     `;
   }
 
-  // 본문 + 저장 버튼
+  // 본문
   if (bodyWrap) {
     bodyWrap.innerHTML = `
       <textarea
         id="body"
         placeholder="오늘의 글을 납입하세요."
         spellcheck="false"
-      >${todayPost ? escapeHtml(todayPost.body) : ''}</textarea>
+      >${post ? escapeHtml(post.body) : ''}</textarea>
 
       <div class="editor-footer">
         <span class="editor-char-count" id="char-count">
@@ -157,18 +219,18 @@ function onProjectChange() {
       </div>
     `;
 
-    if (todayPost) {
-      document.getElementById('save-btn').dataset.postId = todayPost.id;
+    if (post) {
+      document.getElementById('save-btn').dataset.postId = post.id;
     }
 
     bindEditorEvents();
     autoResizeTextarea();
   }
 
-  window._dailyTarget = daily;
+  window._dailyTarget       = daily;
+  window._currentProjectId  = projectId;
 }
 
-// 다음 납입 가능 날짜
 function getNextWriteDay(project) {
   if (!project.write_days || project.write_days.length === 0) return null;
   let current = new Date(getToday());
@@ -180,6 +242,16 @@ function getNextWriteDay(project) {
     current.setDate(current.getDate() + 1);
   }
   return null;
+}
+
+function onProjectChange() {
+  const trigger = document.getElementById('custom-select-trigger');
+  const projectId = document.querySelector('.custom-select-option.selected')
+    ?.dataset.id;
+  if (projectId) {
+    const post = getPostByDateAndProject(getToday(), projectId);
+    renderEditorBody(projectId, post);
+  }
 }
 
 function updateDailyBar() {
@@ -245,14 +317,13 @@ function autoResizeTextarea() {
 }
 
 function savePost(silent = false) {
-  const bodyEl   = document.getElementById('body');
-  const selectEl = document.getElementById('project-select');
-  const saveBtn  = document.getElementById('save-btn');
+  const bodyEl  = document.getElementById('body');
+  const saveBtn = document.getElementById('save-btn');
 
-  if (!bodyEl || !selectEl) return;
+  if (!bodyEl) return;
 
   const body      = bodyEl.value.trim();
-  const projectId = selectEl.value;
+  const projectId = window._currentProjectId;
   const postId    = saveBtn?.dataset.postId;
 
   if (!body) {
