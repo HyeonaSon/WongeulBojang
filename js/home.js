@@ -72,9 +72,19 @@ function renderBalanceCard() {
   `;
 }
 
-function renderSavingsCard(p, isDone) {
-  const written    = getProjectWrittenChars(p.id);
-  const daily      = calcDailyTarget(p.target_chars, written, p.deadline, p.write_days);
+function showProjectDetail(projectId) {
+  const p = getProject(projectId);
+
+  // 오늘 이전까지 쓴 글자 수 기준으로 하루 목표 계산
+  const allPosts    = getPostsByProject(projectId);
+  const prevWritten = allPosts
+    .filter(post => getDateStr(post.created_at) < getToday())
+    .reduce((s, post) => s + post.char_count, 0);
+
+  const written  = getProjectWrittenChars(projectId); // 누적 총합 (통계용)
+  const daily    = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
+
+  // ... 나머지 코드 유지
   const progress   = calcProgress(written, p.target_chars);
   const daysLeft   = getDaysLeft(p.deadline);
   const catClass   = getCatClass(p.category);
