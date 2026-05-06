@@ -445,3 +445,120 @@ function confirmDeleteProject(projectId) {
   deleteProject(projectId);
   initDashboard();
 }
+
+function openPost(post, locked) {
+  const existing = document.getElementById('post-modal');
+  if (existing) existing.remove();
+
+  const modal     = document.createElement('div');
+  modal.id        = 'post-modal';
+  modal.className = 'modal-overlay';
+
+  const project   = getProject(post.project_id);
+  const catClass  = project ? getCatClass(project.category) : '';
+
+  modal.innerHTML = `
+    <div class="modal">
+      <div class="modal-handle"></div>
+
+      <div class="modal-header">
+        <div>
+          <div class="detail-date">
+            ${formatDisplayDate(getDateStr(post.created_at))}
+          </div>
+          ${project ? `
+            <div class="detail-project" style="margin-top:4px">
+              <div class="detail-dot"
+                   style="background:var(--c-cat-${CATEGORY_CLASS[project.category] || 'jogak'})">
+              </div>
+              <span style="font-family:var(--font-sans);font-size:var(--text-sm);
+                           color:var(--c-text-2)">${escapeHtml(project.name)}</span>
+            </div>
+          ` : ''}
+        </div>
+        <button class="modal-close" onclick="closePostModal()">✕</button>
+      </div>
+
+      <div class="modal-char-info"
+           style="font-family:var(--font-sans);font-size:var(--text-xs);
+                  color:var(--c-muted);padding-bottom:var(--space-md);
+                  border-bottom:1px solid var(--c-line)">
+        ${post.char_count.toLocaleString()}자 · ${charsToPages(post.char_count)}매
+        <span style="margin-left:var(--space-sm)"
+              class="${locked ? '' : 'detail-badge editable'}">
+          ${locked ? '' : '수정 가능'}
+        </span>
+      </div>
+
+      <div style="padding:var(--space-md) 0">
+        ${locked
+          ? `<div class="modal-post-body">
+               ${escapeHtml(post.body).replace(/\n/g, '<br>')}
+             </div>`
+          : `<textarea class="modal-body-input" id="modal-body"
+               spellcheck="false">${escapeHtml(post.body)}</textarea>`
+        }
+      </div>
+
+      ${!locked ? `
+        <div class="modal-footer">
+          <span class="modal-charcount" id="modal-char-count">
+            ${post.char_count.toLocaleString()}자
+          </span>
+          <button class="modal-save-btn"
+                  onclick="savePostFromModal('${post.id}', '${post.project_id}')">
+            저장
+          </button>
+        </div>
+      ` : `
+        <div class="modal-footer">
+          <span class="modal-locked-msg">수정할 수 없는 글이에요.</span>
+        </div>
+      `}
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  if (!locked) {
+    const ta = document.getElementById('modal-body');
+    if (ta) {
+      ta.style.height = 'auto';
+      ta.style.height = ta.scrollHeight + 'px';
+      ta.addEventListener('input', () => {
+        ta.style.height = 'auto';
+        ta.style.height = ta.scrollHeight + 'px';
+        const countEl = document.getElementById('modal-char-count');
+        if (countEl) countEl.textContent = ta.value.length.toLocaleString() + '자';
+      });
+    }
+  }
+
+  modal.addEventListener('click', e => {
+    if (e.target === modal) closePostModal();
+  });
+
+  document.addEventListener('keydown', handlePostModalEsc);
+  requestAnimationFrame(() => modal.classList.add('open'));
+}
+
+function savePostFromModal(postId, projectId) {
+  const body = document.getElementById('modal-body')?.value.trim();
+  if (!body) return;
+  updatePost(postId, projectId, body);
+  closePostModal();
+  // 현재 화면 새로고침
+  openProjectDetail(projectId);
+}
+
+function closePostModal() {
+  const modal = document.getElementById('post-modal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  document.removeEventListener('keydown', handlePostModalEsc);
+  setTimeout(() => modal.remove(), 300);
+}
+
+function handlePostModalEsc(e) {
+  if (e.key === 'Escape') closePostModal();
+}
