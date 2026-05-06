@@ -3,34 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>원글보장</title>
 
   <!-- 나눔명조 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap"
+        rel="stylesheet">
 
   <!-- 프리텐다드 -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.min.css">
 
   <!-- CSS -->
   <link rel="stylesheet" href="css/reset.css">
   <link rel="stylesheet" href="css/typography.css">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/style.css">
-
 </head>
 <body>
 
-  <!-- 앱 -->
   <div id="app">
     <nav id="nav">
-      <button data-screen="dashboard">홈</button>
-      <button data-screen="editor">쓰기</button>
-      <button data-screen="archive">기록</button>
-      <button data-screen="stats">통계</button>
-      <button data-screen="settings">설정</button>
+      <button data-screen="dashboard">
+        <span class="nav-icon">🏦</span>
+        홈
+      </button>
+      <button data-screen="editor">
+        <span class="nav-icon">✍️</span>
+        납입
+      </button>
+      <button data-screen="archive">
+        <span class="nav-icon">📅</span>
+        기록
+      </button>
+      <button data-screen="stats">
+        <span class="nav-icon">📊</span>
+        통계
+      </button>
+      <button data-screen="settings">
+        <span class="nav-icon">⚙️</span>
+        설정
+      </button>
     </nav>
 
     <main>
