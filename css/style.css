@@ -738,6 +738,8 @@ main {
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
   margin-bottom: var(--s24);
 }
 
@@ -746,12 +748,16 @@ main {
   font-size: var(--xs);
   color: var(--muted);
   text-align: center;
-  padding: 6px 0;
+  padding: 8px 0;
   letter-spacing: 0.04em;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
 }
 
 .cal-cell {
-  min-height: 52px;
+  /* 항상 일정한 높이 */
+  height: 64px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -759,10 +765,12 @@ main {
   gap: 3px;
   cursor: default;
   transition: background 0.1s;
-  border-radius: var(--r-sm);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
 }
 
-.cal-cell.click { cursor: pointer; }
+.cal-cell.click  { cursor: pointer; }
 .cal-cell.click:hover { background: var(--bg); }
 
 .cal-cell.sel {
@@ -770,6 +778,8 @@ main {
   outline: 1.5px solid var(--accent-2);
   outline-offset: -1px;
 }
+
+.cal-cell.dim { background: var(--bg); }
 
 .cal-num {
   font-family: var(--sans);
@@ -780,7 +790,6 @@ main {
 
 .cal-cell.today .cal-num  { color: var(--accent-2); font-weight: 600; }
 .cal-cell.wrote .cal-num  { color: var(--text); }
-.cal-cell.dim             { opacity: 0.3; }
 
 /* 타임라인 바 */
 .cal-bars {
@@ -795,16 +804,21 @@ main {
   width: 100%;
 }
 
-.cal-bar.empty    { background: transparent; }
-.cal-bar.on       { opacity: 1; }
-.cal-bar.off      { opacity: 0.2; }
-.cal-bar.s        { border-radius: 3px 0 0 3px; }
-.cal-bar.e        { border-radius: 0 3px 3px 0; }
-.cal-bar.s.e      { border-radius: 3px; }
+.cal-bar.empty { background: transparent; }
+.cal-bar.on    { opacity: 1; }
+.cal-bar.off   { opacity: 0.2; }
+.cal-bar.s     { border-radius: 3px 0 0 3px; }
+.cal-bar.e     { border-radius: 0 3px 3px 0; }
+.cal-bar.s.e   { border-radius: 3px; }
 
 .cal-check {
   font-size: 8px;
   color: var(--accent-2);
+}
+
+/* 빈 셀도 같은 크기 */
+.cal-cell:empty {
+  background: var(--bg);
 }
 
 /* 범례 */
