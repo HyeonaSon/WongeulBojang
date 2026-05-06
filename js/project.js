@@ -500,9 +500,10 @@ function openPost(post, locked) {
       </div>
 
       <div class="modal-footer">
-        <span class="modal-locked-msg">기록 메뉴에서 수정할 수 있어요.</span>
+        <span class="modal-locked-msg">
+          ${isEditable(post) ? '납입 메뉴에서 수정할 수 있어요.' : '수정할 수 없는 글이에요.'}
+        </span>
       </div>
-    </div>
   `;
 
   document.body.appendChild(modal);
