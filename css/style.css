@@ -735,188 +735,6 @@ main {
 
 .month-btn:hover { color: var(--text); border-color: var(--text-2); }
 
-.cal-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  border-top: 1px solid var(--line);
-  border-left: 1px solid var(--line);
-  margin-bottom: var(--s24);
-}
-
-.cal-dow {
-  font-family: var(--sans);
-  font-size: var(--xs);
-  color: var(--muted);
-  text-align: center;
-  padding: 8px 0;
-  letter-spacing: 0.04em;
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  background: var(--bg);
-}
-
-.cal-cell {
-  /* 항상 일정한 높이 */
-  height: 64px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 6px 0 4px;
-  gap: 3px;
-  cursor: default;
-  transition: background 0.1s;
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  background: var(--surface);
-}
-
-.cal-cell.click  { cursor: pointer; }
-.cal-cell.click:hover { background: var(--bg); }
-
-.cal-cell.sel {
-  background: var(--accent-bg);
-  outline: 1.5px solid var(--accent-2);
-  outline-offset: -1px;
-}
-
-.cal-cell.dim { background: var(--bg); }
-
-.cal-num {
-  font-family: var(--sans);
-  font-size: var(--xs);
-  color: var(--muted);
-  line-height: 1;
-}
-
-.cal-cell.today .cal-num  { color: var(--accent-2); font-weight: 600; }
-.cal-cell.wrote .cal-num  { color: var(--text); }
-
-/* 타임라인 바 */
-.cal-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  width: 100%;
-}
-
-.cal-bar {
-  height: 3px;
-  width: 100%;
-}
-
-.cal-bar.empty { background: transparent; }
-.cal-bar.on    { opacity: 1; }
-.cal-bar.off   { opacity: 0.2; }
-.cal-bar.s     { border-radius: 3px 0 0 3px; }
-.cal-bar.e     { border-radius: 0 3px 3px 0; }
-.cal-bar.s.e   { border-radius: 3px; }
-
-.cal-check {
-  font-size: 8px;
-  color: var(--accent-2);
-}
-
-/* 빈 셀도 같은 크기 */
-.cal-cell:empty {
-  background: var(--bg);
-}
-
-/* 범례 */
-.cal-legend {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s8);
-  padding: var(--s16);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  margin-bottom: var(--s24);
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: var(--s8);
-  font-family: var(--sans);
-  font-size: var(--sm);
-}
-
-.legend-color {
-  width: 24px;
-  height: 4px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
-.legend-name  { flex: 1; color: var(--text-2); }
-.legend-range { color: var(--muted); font-size: var(--xs); }
-
-/* 글 상세 */
-.post-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  margin-top: var(--s24);
-}
-
-.post-card-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: var(--s16) var(--s24);
-  border-bottom: 1px solid var(--line);
-}
-
-.post-card-date {
-  font-family: var(--sans);
-  font-size: var(--sm);
-  color: var(--muted);
-  margin-bottom: 4px;
-}
-
-.post-card-project {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--sans);
-  font-size: var(--sm);
-  color: var(--text-2);
-}
-
-.post-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.post-card-chars {
-  font-family: var(--serif);
-  font-size: var(--lg);
-  color: var(--text);
-}
-
-.post-card-body {
-  padding: var(--s24);
-  font-family: var(--serif);
-  font-size: var(--base);
-  line-height: var(--lh-body);
-  color: var(--text);
-  white-space: pre-wrap;
-}
-
-.post-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--s12) var(--s24);
-  border-top: 1px solid var(--line);
-  background: var(--bg);
-  font-family: var(--sans);
-  font-size: var(--sm);
-  color: var(--muted);
-}
 
 /* ── 공통 ── */
 
@@ -989,4 +807,187 @@ main {
   .fab {
     width: calc(100vw - var(--s16) * 2);
   }
+}
+
+let _year;
+
+function initArchive() {
+  _year = new Date().getFullYear();
+  renderArchive();
+}
+
+function renderArchive() {
+  const el       = document.getElementById('screen-archive');
+  const posts    = getPostsByDateRange(`${_year}-01-01`, `${_year}-12-31`);
+  const projects = getAllProjects();
+
+  // 날짜별 달성 여부 계산
+  const byDate = {};
+  posts.forEach(p => {
+    const d  = getDateStr(p.created_at);
+    const pr = projects.find(x => x.id === p.project_id);
+    if (!pr) {
+      byDate[d] = { chars: p.char_count, done: false };
+      return;
+    }
+    const written = getProjectWrittenChars(pr.id);
+    const daily   = calcDailyTarget(pr.target_chars, written, pr.deadline, pr.write_days);
+    byDate[d] = {
+      chars: p.char_count,
+      done:  p.char_count >= daily
+    };
+  });
+
+  // 연도별 통계
+  const totalDays   = Object.keys(byDate).length;
+  const doneDays    = Object.values(byDate).filter(v => v.done).length;
+  const totalChars  = Object.values(byDate).reduce((s, v) => s + v.chars, 0);
+
+  // 잔디 그리드 생성
+  const grid = renderGrass(_year, byDate);
+
+  // 이전/다음 연도 버튼
+  const now       = new Date().getFullYear();
+  const hasPrev   = getAllPosts().some(p =>
+    getDateStr(p.created_at).startsWith(String(_year - 1))
+  );
+  const hasNext   = _year < now;
+
+  el.innerHTML = `
+    <div class="archive-header">
+      <button class="month-btn"
+              onclick="moveYear(-1)"
+              ${!hasPrev ? 'style="opacity:0.3;pointer-events:none"' : ''}>
+        ←
+      </button>
+      <span class="archive-month">${_year}년</span>
+      <button class="month-btn"
+              onclick="moveYear(1)"
+              ${!hasNext ? 'style="opacity:0.3;pointer-events:none"' : ''}>
+        →
+      </button>
+    </div>
+
+    <div class="grass-stats">
+      <div class="grass-stat">
+        <div class="grass-stat-value">${totalDays}</div>
+        <div class="grass-stat-label">납입일</div>
+      </div>
+      <div class="grass-stat">
+        <div class="grass-stat-value">${doneDays}</div>
+        <div class="grass-stat-label">목표 달성</div>
+      </div>
+      <div class="grass-stat">
+        <div class="grass-stat-value">${totalChars.toLocaleString()}</div>
+        <div class="grass-stat-label">총 글자</div>
+      </div>
+    </div>
+
+    <div class="grass-wrap">
+      <div class="grass-months">${renderMonthLabels(_year)}</div>
+      <div class="grass-grid" id="grass-grid">${grid}</div>
+      <div class="grass-days">
+        <span></span>
+        <span>월</span>
+        <span></span>
+        <span>수</span>
+        <span></span>
+        <span>금</span>
+        <span></span>
+      </div>
+    </div>
+
+    <div class="grass-legend">
+      <span style="font-family:var(--sans);font-size:var(--xs);color:var(--muted)">
+        적음
+      </span>
+      <div class="grass-cell level-0"></div>
+      <div class="grass-cell level-1"></div>
+      <div class="grass-cell level-2"></div>
+      <div class="grass-cell level-3"></div>
+      <div class="grass-cell level-4"></div>
+      <span style="font-family:var(--sans);font-size:var(--xs);color:var(--muted)">
+        많음
+      </span>
+    </div>
+  `;
+}
+
+function renderGrass(year, byDate) {
+  const startDate = new Date(`${year}-01-01`);
+  const endDate   = new Date(`${year}-12-31`);
+  const today     = new Date(getToday());
+
+  // 모든 날짜의 글자 수
+  const allChars = Object.values(byDate).map(v => v.chars);
+  const maxChars = Math.max(...allChars, 1);
+
+  // 시작 요일 (일=0) 만큼 빈 셀 추가
+  const startDow = startDate.getDay();
+
+  let cells = '';
+
+  // 앞 빈 셀
+  for (let i = 0; i < startDow; i++) {
+    cells += `<div class="grass-cell empty"></div>`;
+  }
+
+  // 날짜 셀
+  let current = new Date(startDate);
+  while (current <= endDate) {
+    const ds      = current.toISOString().slice(0, 10);
+    const data    = byDate[ds];
+    const isFuture = current > today;
+    const isToday  = ds === getToday();
+
+    let level = 0;
+    let title = ds;
+
+    if (data) {
+      if (data.done) {
+        // 목표 달성 — 글자 수 비례로 레벨 1~4
+        level = Math.min(4, Math.ceil((data.chars / maxChars) * 4));
+        if (level === 0) level = 1;
+      } else {
+        // 글은 썼지만 목표 미달 — 레벨 1 고정 (연한 색)
+        level = 1;
+      }
+      title = `${ds}: ${data.chars.toLocaleString()}자${data.done ? ' ✓' : ''}`;
+    }
+
+    cells += `
+      <div class="grass-cell level-${isFuture ? 'future' : level}
+           ${isToday ? 'grass-today' : ''}"
+           title="${title}">
+      </div>
+    `;
+
+    current.setDate(current.getDate() + 1);
+  }
+
+  return cells;
+}
+
+function renderMonthLabels(year) {
+  const months = ['1월','2월','3월','4월','5월','6월',
+                  '7월','8월','9월','10월','11월','12월'];
+
+  return months.map((m, i) => {
+    // 각 월의 시작 주 위치 계산
+    const firstDay = new Date(year, i, 1).getDay();
+    const startOfYear = new Date(year, 0, 1).getDay();
+
+    // 1월 1일부터 이 월의 1일까지 날짜 수
+    const dayOfYear = Math.floor(
+      (new Date(year, i, 1) - new Date(year, 0, 1)) / 86400000
+    );
+    const weekOffset = Math.floor((dayOfYear + startOfYear) / 7);
+
+    return `<span style="grid-column:${weekOffset + 1}">${m}</span>`;
+  }).join('');
+}
+
+function moveYear(dir) {
+  _year += dir;
+  renderArchive();
 }
