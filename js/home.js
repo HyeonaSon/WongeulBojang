@@ -183,7 +183,7 @@ function showNewProject() {
     <div class="form-section">
       <label class="form-label">시작일</label>
       <input class="form-input" id="f-start" type="date"
-             value="${getToday()}" />
+       value="${getToday()}" oninput="updatePreview()" />
     </div>
 
     <div class="form-section">
@@ -454,7 +454,7 @@ function showEditProject(projectId) {
     <div class="form-section">
       <label class="form-label">시작일</label>
       <input class="form-input" id="f-start" type="date"
-             value="${p.start_date}" />
+       value="${getToday()}" oninput="updatePreview()" />
     </div>
 
     <div class="form-section">
