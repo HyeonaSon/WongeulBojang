@@ -11,6 +11,22 @@ function initEditor() {
 function renderEditorUI(post, projects) {
   const screen = document.getElementById('screen-editor');
 
+  if (projects.length === 0) {
+    screen.innerHTML = `
+      <div class="editor-header">
+        <div class="editor-date">${formatDisplayDate(getToday())}</div>
+      </div>
+      <div class="empty-state">
+        <div class="empty-state-icon">🏦</div>
+        진행 중인 적금이 없어요.<br>
+        <button class="link-btn" onclick="switchScreen('dashboard')">
+          새 적금 개설하기 →
+        </button>
+      </div>
+    `;
+    return;
+  }
+
   const options = projects.map(p => `
     <option value="${p.id}" ${post?.project_id === p.id ? 'selected' : ''}>
       ${escapeHtml(p.name)}
@@ -18,39 +34,19 @@ function renderEditorUI(post, projects) {
   `).join('');
 
   screen.innerHTML = `
-    <div id="editor-date">${formatDisplayDate(getToday())}</div>
+    <div class="editor-header">
+      <div class="editor-date">${formatDisplayDate(getToday())}</div>
+      <div class="editor-project-select">
+        <select id="project-select" onchange="onProjectChange()">
+          <option value="">적금 선택</option>
+          ${options}
+        </select>
+        <div id="write-day-badge"></div>
+      </div>
+    </div>
 
-    ${projects.length === 0
-      ? `<div class="empty-state">진행 중인 프로젝트가 없어요.
-           <button class="link-btn" onclick="switchScreen('dashboard')">
-             새 적금 만들기 →
-           </button>
-         </div>`
-      : `
-        <div id="project-select-wrap">
-          <select id="project-select" onchange="onProjectChange()">
-            <option value="">프로젝트 선택</option>
-            ${options}
-          </select>
-        </div>
-
-        <div id="daily-goal-bar"></div>
-
-        <textarea
-          id="body"
-          placeholder="오늘의 글을 납입하세요."
-          spellcheck="false"
-        >${post ? escapeHtml(post.body) : ''}</textarea>
-
-        <div class="editor-footer">
-          <span id="char-count">오늘 0자</span>
-          <div class="editor-actions">
-            <span id="save-status"></span>
-            <button id="save-btn" onclick="savePost()">저장</button>
-          </div>
-        </div>
-      `
-    }
+    <div id="deposit-goal-wrap"></div>
+    <div id="editor-body-wrap"></div>
   `;
 
   if (post) {
@@ -58,48 +54,132 @@ function renderEditorUI(post, projects) {
     if (saveBtn) saveBtn.dataset.postId = post.id;
   }
 
-  bindEditorEvents();
   onProjectChange();
-  autoResizeTextarea();
 }
 
 function onProjectChange() {
-  const selectEl = document.getElementById('project-select');
-  const barEl    = document.getElementById('daily-goal-bar');
-  const countEl  = document.getElementById('char-count');
-  const bodyEl   = document.getElementById('body');
+  const selectEl   = document.getElementById('project-select');
+  const badgeEl    = document.getElementById('write-day-badge');
+  const goalWrap   = document.getElementById('deposit-goal-wrap');
+  const bodyWrap   = document.getElementById('editor-body-wrap');
 
-  if (!selectEl || !barEl) return;
+  if (!selectEl) return;
 
   const projectId = selectEl.value;
+
   if (!projectId) {
-    barEl.innerHTML = '';
+    if (badgeEl)  badgeEl.innerHTML = '';
+    if (goalWrap) goalWrap.innerHTML = '';
+    if (bodyWrap) bodyWrap.innerHTML = '';
     return;
   }
 
-  const project      = getProject(projectId);
-  const written      = getProjectWrittenChars(projectId);
-  const daily        = calcDailyTarget(project.target_chars, written, project.deadline);
-  const currentChars = bodyEl ? bodyEl.value.length : 0;
+  const project    = getProject(projectId);
+  const written    = getProjectWrittenChars(projectId);
+  const daily      = calcDailyTarget(
+    project.target_chars, written, project.deadline, project.write_days
+  );
+  const canWrite   = isWriteDay(project) && project.start_date <= getToday();
+  const todayPost  = getPostByDateAndProject(getToday(), projectId);
+  const label      = getWriteDaysLabel(project.write_days);
+
+  // 납입 요일 뱃지
+  if (badgeEl) {
+    badgeEl.innerHTML = `
+      <span class="write-day-badge ${canWrite ? 'available' : 'unavailable'}">
+        ${label} 납입${canWrite ? ' 가능' : ' 불가'}
+      </span>
+    `;
+  }
+
+  // 납입 불가 날 (오늘이 납입 요일 아님)
+  if (!canWrite) {
+    if (goalWrap) goalWrap.innerHTML = '';
+    if (bodyWrap) {
+      const nextWriteDay = getNextWriteDay(project);
+      bodyWrap.innerHTML = `
+        <div class="editor-locked">
+          <div class="editor-locked-icon">📅</div>
+          <div class="editor-locked-title">오늘은 납입일이 아니에요</div>
+          <div class="editor-locked-desc">
+            납입 요일: ${label}<br>
+            ${nextWriteDay ? `다음 납입일: ${nextWriteDay}` : ''}
+          </div>
+        </div>
+      `;
+    }
+    window._dailyTarget = 0;
+    return;
+  }
+
+  // 이미 오늘 납입 완료
+  const currentChars = todayPost ? todayPost.char_count : 0;
   const progress     = calcProgress(currentChars, daily);
 
-  barEl.innerHTML = `
-    <div class="daily-goal-wrap">
-      <div class="daily-goal-label">
-        <span>오늘 납입 목표</span>
-        <span id="daily-goal-text">${currentChars.toLocaleString()} / ${daily.toLocaleString()}자</span>
+  // 납입 목표 바
+  if (goalWrap) {
+    goalWrap.innerHTML = `
+      <div class="deposit-goal">
+        <div class="deposit-goal-label">
+          <span>오늘 납입 목표</span>
+          <span id="daily-goal-text">
+            ${currentChars.toLocaleString()} / ${daily.toLocaleString()}자
+          </span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill ${progress >= 100 ? 'complete' : ''}"
+               id="daily-progress-fill"
+               style="width:${progress}%"></div>
+        </div>
       </div>
-      <div class="progress-bar">
-        <div class="progress-fill ${progress >= 100 ? 'done' : ''}"
-             id="daily-progress-fill"
-             style="width:${progress}%"></div>
-      </div>
-    </div>
-  `;
+    `;
+  }
 
-  if (countEl) countEl.textContent = `오늘 ${currentChars.toLocaleString()}자`;
+  // 본문 + 저장 버튼
+  if (bodyWrap) {
+    bodyWrap.innerHTML = `
+      <textarea
+        id="body"
+        placeholder="오늘의 글을 납입하세요."
+        spellcheck="false"
+      >${todayPost ? escapeHtml(todayPost.body) : ''}</textarea>
+
+      <div class="editor-footer">
+        <span class="editor-char-count" id="char-count">
+          오늘 ${currentChars.toLocaleString()}자
+        </span>
+        <div class="editor-actions">
+          <span class="save-status" id="save-status"></span>
+          <button class="deposit-btn" id="save-btn" onclick="savePost()">
+            납입
+          </button>
+        </div>
+      </div>
+    `;
+
+    if (todayPost) {
+      document.getElementById('save-btn').dataset.postId = todayPost.id;
+    }
+
+    bindEditorEvents();
+    autoResizeTextarea();
+  }
 
   window._dailyTarget = daily;
+}
+
+// 다음 납입 가능 날짜
+function getNextWriteDay(project) {
+  if (!project.write_days || project.write_days.length === 0) return null;
+  let current = new Date(getToday());
+  current.setDate(current.getDate() + 1);
+  for (let i = 0; i < 7; i++) {
+    if (project.write_days.includes(current.getDay())) {
+      return current.toISOString().slice(0, 10);
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  return null;
 }
 
 function updateDailyBar() {
@@ -115,7 +195,7 @@ function updateDailyBar() {
   const progress = calcProgress(current, daily);
 
   fillEl.style.width = progress + '%';
-  fillEl.classList.toggle('done', progress >= 100);
+  fillEl.classList.toggle('complete', progress >= 100);
   if (textEl)  textEl.textContent  = `${current.toLocaleString()} / ${daily.toLocaleString()}자`;
   if (countEl) countEl.textContent = `오늘 ${current.toLocaleString()}자`;
 }
@@ -180,7 +260,7 @@ function savePost(silent = false) {
     return;
   }
   if (!projectId) {
-    if (!silent) setSaveStatus('프로젝트를 선택해주세요.');
+    if (!silent) setSaveStatus('적금을 선택해주세요.');
     return;
   }
 
@@ -191,7 +271,8 @@ function savePost(silent = false) {
     if (saveBtn) saveBtn.dataset.postId = post.id;
   }
 
-  setSaveStatus(silent ? '자동 저장됨' : '저장됨');
+  updateDailyBar();
+  setSaveStatus(silent ? '자동 저장됨' : '납입 완료');
   setTimeout(() => setSaveStatus(''), 2000);
 }
 
