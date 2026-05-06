@@ -144,7 +144,6 @@ function renderDateDetail(post, projects) {
   if (!detail) return;
 
   const project    = projects.find(p => p.id === post.project_id);
-  const locked     = !isEditable(post);
   const dateStr    = getDateStr(post.created_at);
   const colorClass = project ? (CATEGORY_CLASS[project.category] || 'jogak') : 'jogak';
 
@@ -164,45 +163,17 @@ function renderDateDetail(post, projects) {
         </div>
         <div class="detail-meta">
           <span class="detail-chars">${post.char_count.toLocaleString()}자</span>
-          <span class="detail-badge ${locked ? 'locked' : 'editable'}">
-            ${locked ? '잠김' : '수정 가능'}
-          </span>
+          <span class="detail-badge locked">읽기 전용</span>
         </div>
       </div>
 
       <div class="detail-body">
-        ${locked
-          ? `<div class="detail-text">
-               ${escapeHtml(post.body).replace(/\n/g, '<br>')}
-             </div>`
-          : `<textarea class="detail-textarea" id="detail-body"
-               spellcheck="false">${escapeHtml(post.body)}</textarea>`
-        }
-      </div>
-
-      ${!locked ? `
-        <div class="detail-footer">
-          <span class="detail-save-status" id="detail-save-status"></span>
-          <button class="modal-save-btn"
-                  onclick="saveFromDetail('${post.id}', '${post.project_id}')">
-            저장
-          </button>
+        <div class="detail-text">
+          ${escapeHtml(post.body).replace(/\n/g, '<br>')}
         </div>
-      ` : ''}
+      </div>
     </div>
   `;
-
-  if (!locked) {
-    const ta = document.getElementById('detail-body');
-    if (ta) {
-      ta.style.height = 'auto';
-      ta.style.height = ta.scrollHeight + 'px';
-      ta.addEventListener('input', () => {
-        ta.style.height = 'auto';
-        ta.style.height = ta.scrollHeight + 'px';
-      });
-    }
-  }
 
   detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
