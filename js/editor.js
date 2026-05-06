@@ -26,7 +26,12 @@ function renderEditorUI(projects) {
     return;
   }
 
-  const defaultProject = projects[0];
+  // 오늘 글이 있는 프로젝트를 기본 선택
+  // 없으면 첫 번째 프로젝트
+  const today = getToday();
+  const defaultProject = projects.find(p =>
+    getPostByDateAndProject(today, p.id) !== null
+  ) || projects[0];
 
   screen.innerHTML = `
     <div class="editor-header">
@@ -41,10 +46,11 @@ function renderEditorUI(projects) {
             <span class="custom-select-arrow" id="select-arrow">▾</span>
           </button>
           <div class="custom-select-dropdown" id="project-dropdown" hidden>
-            ${projects.map((p, i) => {
-              const catClass = getCatClass(p.category);
+            ${projects.map(p => {
+              const catClass   = getCatClass(p.category);
+              const isSelected = p.id === defaultProject.id;
               return `
-                <div class="custom-select-option ${i === 0 ? 'selected' : ''}"
+                <div class="custom-select-option ${isSelected ? 'selected' : ''}"
                      data-id="${p.id}"
                      onclick="selectProject('${p.id}')">
                   <div class="custom-option-name">${escapeHtml(p.name)}</div>
