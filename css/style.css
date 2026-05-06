@@ -668,30 +668,23 @@ main {
   border-color: var(--c-line-2);
 }
 
+/* 달력 그리드 — gap 제거 */
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  gap: 0;          /* 2px → 0 */
   margin-bottom: var(--space-lg);
 }
 
-.cal-dow {
-  font-family: var(--font-sans);
-  font-size: 11px;
-  color: var(--c-muted);
-  text-align: center;
-  padding: 6px 0;
-  letter-spacing: 0.04em;
-}
-
+/* 셀 패딩 조정 */
 .cal-cell {
   min-height: 52px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 6px 2px 4px;
+  padding: 6px 0 4px;
   gap: 3px;
-  border-radius: var(--radius-sm);
+  border-radius: 0;   /* 반경 제거 */
   cursor: default;
   transition: background 0.1s;
 }
@@ -705,56 +698,38 @@ main {
   outline-offset: -1px;
 }
 
-.cal-date {
-  font-family: var(--font-sans);
-  font-size: 12px;
-  color: var(--c-muted);
-  line-height: 1;
-}
-
-.cal-cell.today .cal-date {
-  color: var(--c-accent-2);
-  font-weight: 600;
-}
-
-.cal-cell.has-post .cal-date { color: var(--c-text); }
-
-.cal-cell.not-write-day { opacity: 0.4; }
-
-/* 타임라인 바 */
+/* 바 — 끊김 없이 이어지도록 */
 .cal-bars {
   display: flex;
   flex-direction: column;
   gap: 2px;
   width: 100%;
+  padding: 0;        /* 패딩 제거 */
 }
 
 .cal-bar {
   height: 3px;
-  border-radius: 1.5px;
+  border-radius: 0;  /* 반경 제거 — 이어지게 */
   width: 100%;
 }
 
-.cal-bar.empty-bar { background: transparent; }
+.cal-bar.empty-bar  { background: transparent; }
 .cal-bar.active-bar { opacity: 1; }
 .cal-bar.inactive-bar { opacity: 0.2; }
 
+/* 시작일 — 왼쪽만 둥글게 */
 .cal-bar.bar-start {
-  border-radius: 1.5px 0 0 1.5px;
-  margin-left: 3px;
-  width: calc(100% - 3px);
+  border-radius: 3px 0 0 3px;
 }
 
+/* 종료일 — 오른쪽만 둥글게 */
 .cal-bar.bar-end {
-  border-radius: 0 1.5px 1.5px 0;
-  margin-right: 3px;
-  width: calc(100% - 3px);
+  border-radius: 0 3px 3px 0;
 }
 
+/* 시작이자 종료 (하루짜리) */
 .cal-bar.bar-start.bar-end {
-  border-radius: 1.5px;
-  margin: 0 3px;
-  width: calc(100% - 6px);
+  border-radius: 3px;
 }
 
 /* 달성 표시 */
