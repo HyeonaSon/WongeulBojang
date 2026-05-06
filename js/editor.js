@@ -129,7 +129,8 @@ function renderEditorBody(projectId) {
   const daily    = calcDailyTarget(
     project.target_chars, written, project.deadline, project.write_days
   );
-  const canWrite = isWriteDay(project) && project.start_date <= getToday();
+  const canWrite = (isWriteDay(project) && project.start_date <= getToday())
+  || !!todayPost;
   const label    = getWriteDaysLabel(project.write_days);
   const todayPost = getPostByDateAndProject(getToday(), projectId);
 
