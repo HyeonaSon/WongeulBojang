@@ -1,5 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // 마지막으로 보던 화면 기억
+  // Ctrl+S 단축키 — 딱 한 번만 등록
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      const saveBtn = document.getElementById('save-btn');
+      if (saveBtn) savePost();
+    }
+  });
+
   const lastScreen = localStorage.getItem('lastScreen') || 'dashboard';
   switchScreen(lastScreen);
 
@@ -10,8 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function switchScreen(name) {
   const screens = ['dashboard', 'editor', 'archive', 'stats', 'settings'];
-
-  // 유효한 화면인지 확인
   if (!screens.includes(name)) name = 'dashboard';
 
   screens.forEach(s => {
@@ -22,7 +28,6 @@ function switchScreen(name) {
     btn.classList.toggle('active', btn.dataset.screen === name);
   });
 
-  // 현재 화면 저장
   localStorage.setItem('lastScreen', name);
 
   if (name === 'dashboard') initDashboard();
