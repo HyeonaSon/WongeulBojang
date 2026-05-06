@@ -5,7 +5,7 @@ function initArchive() {
   const now    = new Date();
   archiveYear  = now.getFullYear();
   archiveMonth = now.getMonth();
-  selectedDate = null;
+  selectedDate = getToday();  // ← null 대신 오늘 날짜로 초기화
   renderArchive();
 }
 
