@@ -2,34 +2,34 @@
 
 function getAllProjects() {
   const keys = Object.keys(localStorage).filter(k => k.startsWith('project_'));
-  return keys.map(k => JSON.parse(localStorage.getItem(k)))
-             .sort((a, b) => a.created_at.localeCompare(b.created_at));
+  return keys
+    .map(k => JSON.parse(localStorage.getItem(k)))
+    .sort((a, b) => a.created_at.localeCompare(b.created_at));
 }
 
-function getActiveProjects() {
+function getProject(id) {
+  return JSON.parse(localStorage.getItem(`project_${id}`));
+}
+
+function getWritableProjects() {
   const today    = getToday();
   const allPosts = getAllPosts();
-
-  // 오늘 쓴 글의 프로젝트 ID 목록
-  const todayProjectIds = new Set(
+  const todayIds = new Set(
     allPosts
       .filter(p => getDateStr(p.created_at) === today)
       .map(p => p.project_id)
   );
 
   return getAllProjects().filter(p => {
-    // 마감일 안 지나고 목표 미달성 → 무조건 포함
-    if (p.deadline >= today) {
-      const written = getProjectWrittenChars(p.id);
-      if (written < p.target_chars) return true;
-    }
-    // 위 조건 아니어도 오늘 이 프로젝트에 쓴 글 있으면 포함
-    return todayProjectIds.has(p.id);
+    // 오늘 이 프로젝트에 쓴 글 있으면 무조건 포함 (수정 가능)
+    if (todayIds.has(p.id)) return true;
+    // 마감일 지나면 제외
+    if (p.deadline < today) return false;
+    // 목표 달성하면 제외
+    const written = getProjectWrittenChars(p.id);
+    if (written >= p.target_chars) return false;
+    return true;
   });
-}
-
-function getProject(id) {
-  return JSON.parse(localStorage.getItem(`project_${id}`));
 }
 
 function createProject(name, category, startDate, deadline, targetChars, writeDays) {
@@ -40,7 +40,7 @@ function createProject(name, category, startDate, deadline, targetChars, writeDa
     start_date:   startDate,
     deadline,
     target_chars: targetChars,
-    write_days:   writeDays || [],  // [] = 매일
+    write_days:   writeDays || [],
     created_at:   new Date().toISOString()
   };
   localStorage.setItem(`project_${project.id}`, JSON.stringify(project));
@@ -64,16 +64,13 @@ function deleteProject(id) {
 
 function getAllPosts() {
   const keys = Object.keys(localStorage).filter(k => k.startsWith('post_'));
-  return keys.map(k => JSON.parse(localStorage.getItem(k)))
-             .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  return keys
+    .map(k => JSON.parse(localStorage.getItem(k)))
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 
 function getPostsByProject(projectId) {
   return getAllPosts().filter(p => p.project_id === projectId);
-}
-
-function getPostByDate(dateStr) {
-  return getAllPosts().find(p => getDateStr(p.created_at) === dateStr) || null;
 }
 
 function getPostByDateAndProject(dateStr, projectId) {
@@ -84,10 +81,12 @@ function getPostByDateAndProject(dateStr, projectId) {
 }
 
 function getPostsByDateRange(startDate, endDate) {
-  return getAllPosts().filter(p => {
-    const d = getDateStr(p.created_at);
-    return d >= startDate && d <= endDate;
-  }).sort((a, b) => a.created_at.localeCompare(b.created_at));
+  return getAllPosts()
+    .filter(p => {
+      const d = getDateStr(p.created_at);
+      return d >= startDate && d <= endDate;
+    })
+    .sort((a, b) => a.created_at.localeCompare(b.created_at));
 }
 
 function createPost(projectId, body) {
@@ -106,7 +105,6 @@ function updatePost(id, projectId, newBody) {
   const key  = `post_${id}`;
   const post = JSON.parse(localStorage.getItem(key));
   if (!post || getDateStr(post.created_at) !== getToday()) return false;
-
   post.project_id = projectId;
   post.body       = newBody;
   post.char_count = newBody.length;
@@ -122,15 +120,18 @@ function isEditable(post) {
 // ── 통계 ──────────────────────────────────────
 
 function getProjectWrittenChars(projectId) {
-  return getPostsByProject(projectId).reduce((s, p) => s + p.char_count, 0);
+  return getPostsByProject(projectId)
+    .reduce((s, p) => s + p.char_count, 0);
+}
+
+function getTotalChars() {
+  return getAllPosts().reduce((s, p) => s + p.char_count, 0);
 }
 
 function getStreak() {
-  const posts = getAllPosts();
-  const dates = new Set(posts.map(p => getDateStr(p.created_at)));
-  let streak  = 0;
-  let current = new Date(getToday());
-
+  const dates   = new Set(getAllPosts().map(p => getDateStr(p.created_at)));
+  let streak    = 0;
+  let current   = new Date(getToday());
   while (true) {
     const d = current.toISOString().slice(0, 10);
     if (dates.has(d)) {
@@ -141,37 +142,45 @@ function getStreak() {
   return streak;
 }
 
-function getMonthlyStats(year, month) {
-  const { start, end } = getMonthRange(year, month);
-  const posts = getPostsByDateRange(start, end);
-
-  const byDate = {};
-  posts.forEach(p => {
-    const d = getDateStr(p.created_at);
-    byDate[d] = (byDate[d] || 0) + p.char_count;
-  });
-
-  const totalChars  = posts.reduce((s, p) => s + p.char_count, 0);
-  const writtenDays = Object.keys(byDate).length;
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const avgChars    = writtenDays ? Math.round(totalChars / writtenDays) : 0;
-
-  return { byDate, totalChars, writtenDays, daysInMonth, avgChars };
+function isProjectDone(p) {
+  if (p.deadline < getToday()) return true;
+  return getProjectWrittenChars(p.id) >= p.target_chars;
 }
 
-function getYearlyStats(year) {
-  const posts   = getPostsByDateRange(`${year}-01-01`, `${year}-12-31`);
-  const byMonth = Array(12).fill(0);
-  posts.forEach(p => {
-    const m = new Date(p.created_at).getMonth();
-    byMonth[m] += p.char_count;
-  });
-  return byMonth;
+// ── 백업 ──────────────────────────────────────
+
+function exportData() {
+  const data = {
+    version:    '1.0',
+    exportedAt: new Date().toISOString(),
+    projects:   getAllProjects(),
+    posts:      getAllPosts()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `원글보장_${getToday()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
-function getEarliestPostDate(projectId = null) {
-  let posts = getAllPosts();
-  if (projectId) posts = posts.filter(p => p.project_id === projectId);
-  if (!posts.length) return null;
-  return posts.map(p => getDateStr(p.created_at)).sort()[0];
+function importData(file, callback) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.projects || !data.posts) {
+        alert('올바른 백업 파일이 아니에요.');
+        return;
+      }
+      if (!confirm(`적금 ${data.projects.length}개, 글 ${data.posts.length}개를 불러올까요?`)) return;
+      data.projects.forEach(p => localStorage.setItem(`project_${p.id}`, JSON.stringify(p)));
+      data.posts.forEach(p => localStorage.setItem(`post_${p.id}`, JSON.stringify(p)));
+      if (callback) callback();
+    } catch {
+      alert('파일을 읽는 중 오류가 생겼어요.');
+    }
+  };
+  reader.readAsText(file);
 }
