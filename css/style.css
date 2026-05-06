@@ -1513,3 +1513,88 @@ main {
 
   .day-btn { width: 32px; height: 32px; font-size: 11px; }
 }
+
+/* ── 커스텀 선택창 ── */
+
+.custom-select-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.custom-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--c-text);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  gap: var(--space-sm);
+}
+
+.custom-select-arrow {
+  font-size: var(--text-xs);
+  color: var(--c-muted);
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.custom-select-dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-sm));
+  left: 0;
+  right: 0;
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  overflow: hidden;
+  min-width: 240px;
+}
+
+.custom-select-option {
+  padding: var(--space-md);
+  cursor: pointer;
+  transition: background 0.1s;
+  border-bottom: 1px solid var(--c-line);
+}
+
+.custom-select-option:last-child {
+  border-bottom: none;
+}
+
+.custom-select-option:hover {
+  background: var(--c-surface-2);
+}
+
+.custom-select-option.selected {
+  background: var(--c-accent-light);
+}
+
+.custom-option-name {
+  font-family: var(--font-serif);
+  font-size: var(--text-base);
+  font-weight: 400;
+  color: var(--c-text);
+  margin-bottom: 3px;
+}
+
+.custom-select-option.selected .custom-option-name {
+  color: var(--c-accent);
+}
+
+.custom-option-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--c-muted);
+}
