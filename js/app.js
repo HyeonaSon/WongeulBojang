@@ -20,6 +20,9 @@ function switchScreen(name) {
   const screens = ['dashboard', 'editor', 'archive', 'stats', 'settings'];
   if (!screens.includes(name)) name = 'dashboard';
 
+  // editor 에서 다른 화면으로 갈 때 이벤트 정리
+  document.removeEventListener('click', handleDropdownOutsideClick);
+
   screens.forEach(s => {
     document.getElementById(`screen-${s}`).hidden = (s !== name);
   });
