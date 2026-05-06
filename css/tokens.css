@@ -1,52 +1,59 @@
 :root {
-  /* ── 색상 ── */
-  --c-bg:          #F5F5F2;
-  --c-surface:     #FFFFFF;
-  --c-surface-2:   #EFEFEB;
-  --c-line:        #E2E2DE;
-  --c-line-2:      #D0D0CA;
+  /* 폰트 */
+  --serif: 'Nanum Myeongjo', Georgia, serif;
+  --sans:  'Pretendard', -apple-system, system-ui, sans-serif;
 
-  --c-text:        #111110;
-  --c-text-2:      #4A4A46;
-  --c-muted:       #96968E;
+  /* 크기 */
+  --xs:   12px;
+  --sm:   14px;
+  --base: 16px;
+  --md:   18px;
+  --lg:   24px;
+  --xl:   32px;
+  --2xl:  42px;
 
-  --c-accent:      #0A3320;   /* 메인 — 딥그린 */
-  --c-accent-2:    #1A5C3A;   /* 보조 */
-  --c-accent-3:    #2D8A5A;   /* 밝은 포인트 */
-  --c-accent-light:#E8F5EE;   /* 연한 배경 */
+  /* 색상 */
+  --bg:       #F8F8F5;
+  --surface:  #FFFFFF;
+  --line:     #E4E4DF;
+  --text:     #1A1A18;
+  --text-2:   #5A5A56;
+  --muted:    #9A9A94;
 
-  --c-success:     #1A7A4A;
-  --c-warn:        #C4620A;
-  --c-danger:      #B42318;
+  --accent:   #1A3A2A;
+  --accent-2: #2D6A4F;
+  --accent-3: #4A9A6A;
+  --accent-bg:#EAF5EE;
 
-  /* ── 카테고리 ── */
-  --c-cat-jogak:   #8A8A82;
-  --c-cat-yeop:    #5A8A62;
-  --c-cat-dan:     #2D7A50;
-  --c-cat-jung:    #1A6A42;
-  --c-cat-kyung:   #0F5A35;
-  --c-cat-jang:    #0A3320;
+  --warn:     #C4620A;
+  --danger:   #B42318;
 
-  /* ── 간격 ── */
-  --space-xs:  4px;
-  --space-sm:  8px;
-  --space-md:  16px;
-  --space-lg:  24px;
-  --space-xl:  40px;
-  --space-2xl: 64px;
+  /* 카테고리 */
+  --jogak: #8A8A82;
+  --yeop:  #5A8A62;
+  --dan:   #2D7A50;
+  --jung:  #1A6A42;
+  --kyung: #0F5A35;
+  --jang:  #1A3A2A;
 
-  /* ── 레이아웃 ── */
-  --nav-h:     60px;
-  --max-w:     640px;
+  /* 간격 */
+  --s4:  4px;
+  --s8:  8px;
+  --s12: 12px;
+  --s16: 16px;
+  --s24: 24px;
+  --s32: 32px;
+  --s48: 48px;
+  --s64: 64px;
 
-  /* ── 반경 ── */
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
+  /* 기타 */
+  --nav-h:  56px;
+  --max-w:  640px;
+  --r-sm:   6px;
+  --r-md:   12px;
+  --r-lg:   20px;
 
-  /* ── 그림자 ── */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.04);
+  /* 줄간격 */
+  --lh-tight: 1.4;
+  --lh-body:  1.95;
 }
