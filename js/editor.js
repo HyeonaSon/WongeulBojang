@@ -1,3 +1,6 @@
+let autoSaveTimer = null;
+let projectDropdownOpen = false;
+
 function switchScreen(name) {
   const screens = ['dashboard', 'editor', 'archive', 'stats', 'settings'];
   if (!screens.includes(name)) name = 'dashboard';
