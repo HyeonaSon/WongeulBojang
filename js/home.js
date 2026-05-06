@@ -181,15 +181,9 @@ function showNewProject() {
     </div>
 
     <div class="form-section">
-      <label class="form-label">시작일</label>
-      <input class="form-input" id="f-start" type="date"
-       value="${getToday()}" oninput="updatePreview()" />
-    </div>
-
-    <div class="form-section">
       <label class="form-label">마감일</label>
       <input class="form-input" id="f-deadline" type="date"
-             min="${getToday()}" oninput="onDeadlineChange()" />
+             min="${getToday()}" oninput="updatePreview()" />
     </div>
 
     <div class="form-section">
@@ -264,18 +258,15 @@ function onCharsChange() {
   updatePreview();
 }
 
-function onDeadlineChange() { updatePreview(); }
-
 function updatePreview() {
   const chars    = Number(document.getElementById('f-chars')?.value || 0);
-  const start    = document.getElementById('f-start')?.value;
   const deadline = document.getElementById('f-deadline')?.value;
   const box      = document.getElementById('preview-box');
   if (!box) return;
-  if (!chars || !deadline || !start) { box.innerHTML = ''; return; }
+  if (!chars || !deadline) { box.innerHTML = ''; return; }
 
-  // 시작일 ~ 마감일 기준
-  const days  = countWritableDays(start, deadline, window._days || []);
+  // 시작일 항상 오늘
+  const days  = countWritableDays(getToday(), deadline, window._days || []);
   const daily = Math.ceil(chars / days);
 
   box.innerHTML = `
@@ -294,19 +285,18 @@ function updatePreview() {
     </div>
   `;
 }
+
 function submitProject() {
   const name     = document.getElementById('f-name').value.trim();
   const chars    = Number(document.getElementById('f-chars').value);
-  const start    = document.getElementById('f-start').value;
   const deadline = document.getElementById('f-deadline').value;
 
-  if (!name)            return alert('이름을 입력해주세요.');
-  if (!chars)           return alert('목표 글자 수를 입력해주세요.');
-  if (!deadline)        return alert('마감일을 입력해주세요.');
-  if (deadline < start) return alert('마감일이 시작일보다 앞입니다.');
+  if (!name)     return alert('이름을 입력해주세요.');
+  if (!chars)    return alert('목표 글자 수를 입력해주세요.');
+  if (!deadline) return alert('마감일을 입력해주세요.');
 
   const cat = getCategory(chars);
-  createProject(name, cat.name, start, deadline, chars, window._days || []);
+  createProject(name, cat.name, getToday(), deadline, chars, window._days || []);
   initHome();
 }
 
@@ -452,15 +442,9 @@ function showEditProject(projectId) {
     </div>
 
     <div class="form-section">
-      <label class="form-label">시작일</label>
-      <input class="form-input" id="f-start" type="date"
-       value="${getToday()}" oninput="updatePreview()" />
-    </div>
-
-    <div class="form-section">
       <label class="form-label">마감일</label>
       <input class="form-input" id="f-deadline" type="date"
-             value="${p.deadline}" oninput="onDeadlineChange()" />
+             value="${p.deadline}" oninput="updatePreview()" />
     </div>
 
     <div class="form-section">
@@ -493,13 +477,12 @@ function showEditProject(projectId) {
   `;
 
   onCharsChange();
-  onDeadlineChange();
+  updatePreview();
 }
 
 function submitEditProject(projectId) {
   const name     = document.getElementById('f-name').value.trim();
   const chars    = Number(document.getElementById('f-chars').value);
-  const start    = document.getElementById('f-start').value;
   const deadline = document.getElementById('f-deadline').value;
 
   if (!name)     return alert('이름을 입력해주세요.');
@@ -508,10 +491,11 @@ function submitEditProject(projectId) {
 
   const cat = getCategory(chars);
   updateProject(projectId, {
-    name, category: cat.name,
-    start_date: start, deadline,
+    name,
+    category:     cat.name,
+    deadline,
     target_chars: chars,
-    write_days: window._days || []
+    write_days:   window._days || []
   });
   showProjectDetail(projectId);
 }
