@@ -128,17 +128,21 @@ function renderEditorBody(projectId) {
 
   if (!projectId) return;
 
-  const project  = getProject(projectId);
+  const project = getProject(projectId);
   if (!project) return;
 
-  const written  = getProjectWrittenChars(projectId);
-  const daily    = calcDailyTarget(
+  const written   = getProjectWrittenChars(projectId);
+  const daily     = calcDailyTarget(
     project.target_chars, written, project.deadline, project.write_days
   );
-  const canWrite = (isWriteDay(project) && project.start_date <= getToday())
-  || !!todayPost;
-  const label    = getWriteDaysLabel(project.write_days);
+  const label     = getWriteDaysLabel(project.write_days);
+
+  // 이 프로젝트의 오늘 글만 조회
   const todayPost = getPostByDateAndProject(getToday(), projectId);
+
+  // 납입 가능 여부 — 오늘 글 있으면 수정 가능
+  const canWrite  = (isWriteDay(project) && project.start_date <= getToday())
+    || !!todayPost;
 
   if (badgeEl) {
     badgeEl.innerHTML = `
@@ -168,6 +172,7 @@ function renderEditorBody(projectId) {
     return;
   }
 
+  // 오늘 이 프로젝트에 쓴 글자 수
   const currentChars = todayPost ? todayPost.char_count : 0;
   const progress     = calcProgress(currentChars, daily);
 
@@ -204,17 +209,17 @@ function renderEditorBody(projectId) {
         <div class="editor-actions">
           <span class="save-status" id="save-status"></span>
           <button class="deposit-btn" id="save-btn" onclick="savePost()">
-            납입
+            ${todayPost ? '수정' : '납입'}
           </button>
         </div>
       </div>
     `;
 
+    // 오늘 글 있으면 postId 설정
     if (todayPost) {
       document.getElementById('save-btn').dataset.postId = todayPost.id;
     }
 
-    // textarea 이벤트만 등록 (keydown은 위에서 한 번만 등록)
     const bodyEl = document.getElementById('body');
     if (bodyEl) {
       bodyEl.addEventListener('input', onBodyInput);
