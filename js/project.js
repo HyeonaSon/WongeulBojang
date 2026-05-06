@@ -2,6 +2,8 @@
 
 function showNewProjectForm() {
   const container = document.getElementById('screen-dashboard');
+  window._selectedDays = [];
+
   container.innerHTML = `
     <div class="form-page-header">
       <button class="back-btn" onclick="initDashboard()">← 취소</button>
@@ -66,9 +68,6 @@ function showNewProjectForm() {
       적금 개설하기
     </button>
   `;
-
-  // 요일 선택 상태
-  window._selectedDays = [];
 }
 
 // ── 요일 토글 ─────────────────────────────────
@@ -83,14 +82,13 @@ function toggleDay(day) {
     const allBtn = document.querySelector('.day-btn.everyday');
     allBtn.classList.remove('selected');
 
-    const idx = window._selectedDays.indexOf(day);
+    const idx = window._selectedDays.indexOf(Number(day));
     if (idx > -1) {
       window._selectedDays.splice(idx, 1);
     } else {
-      window._selectedDays.push(day);
+      window._selectedDays.push(Number(day));
     }
 
-    // 정렬
     window._selectedDays.sort((a, b) => a - b);
 
     document.querySelectorAll('.day-btn:not(.everyday)').forEach(btn => {
@@ -99,7 +97,6 @@ function toggleDay(day) {
       );
     });
 
-    // 아무것도 선택 안 하면 매일로
     if (window._selectedDays.length === 0) {
       allBtn.classList.add('selected');
     }
@@ -191,9 +188,9 @@ function submitNewProject() {
   const start    = document.getElementById('proj-start').value;
   const deadline = document.getElementById('proj-deadline').value;
 
-  if (!name)     return alert('적금 이름을 입력해주세요.');
-  if (!chars)    return alert('목표 글자 수를 입력해주세요.');
-  if (!deadline) return alert('마감일을 입력해주세요.');
+  if (!name)            return alert('적금 이름을 입력해주세요.');
+  if (!chars)           return alert('목표 글자 수를 입력해주세요.');
+  if (!deadline)        return alert('마감일을 입력해주세요.');
   if (deadline < start) return alert('마감일이 시작일보다 앞입니다.');
 
   const cat       = getCategory(chars);
@@ -217,8 +214,7 @@ function openProjectDetail(projectId) {
   const writeDaysLabel = getWriteDaysLabel(project.write_days);
   const isDone         = project.deadline < getToday();
 
-  // 날짜 범위
-  const rangeEnd = project.deadline < getToday() ? project.deadline : getToday();
+  const rangeEnd = isDone ? project.deadline : getToday();
   const allDates = dateRange(project.start_date, rangeEnd).reverse();
 
   const depositRows = allDates.map(dateStr => {
@@ -234,8 +230,7 @@ function openProjectDetail(projectId) {
       const achieved = post.char_count >= daily;
       const locked   = !isEditable(post);
       return `
-        <div class="deposit-row"
-             onclick="openPost(${JSON.stringify(post).replace(/"/g, '&quot;')}, ${locked})">
+        <div class="deposit-row" onclick="openPostDetail('${post.id}')">
           <span class="deposit-row-date">${dateStr.slice(5)}</span>
           <span class="deposit-row-chars">${post.char_count.toLocaleString()}자</span>
           <span class="deposit-row-status ${achieved ? 'achieved' : 'missed'}">
@@ -322,6 +317,15 @@ function openProjectDetail(projectId) {
   `;
 }
 
+// ── 글 상세 보기 (납입 내역 클릭) ────────────
+
+function openPostDetail(postId) {
+  const post    = getAllPosts().find(p => p.id === postId);
+  if (!post) return;
+  const locked  = !isEditable(post);
+  openPost(post, locked);
+}
+
 // ── 적금 수정 폼 ──────────────────────────────
 
 function showEditProjectForm(projectId) {
@@ -375,11 +379,13 @@ function showEditProjectForm(projectId) {
     <div class="form-section">
       <label class="form-label">납입 요일</label>
       <div class="day-selector" id="day-selector">
-        <button class="day-btn everyday ${window._selectedDays.length === 0 ? 'selected' : ''}"
-                data-day="all" onclick="toggleDay('all')">매일</button>
+        <button class="day-btn everyday
+          ${window._selectedDays.length === 0 ? 'selected' : ''}"
+          data-day="all" onclick="toggleDay('all')">매일</button>
         ${['일','월','화','수','목','금','토'].map((d, i) => `
-          <button class="day-btn ${window._selectedDays.includes(i) ? 'selected' : ''}"
-                  data-day="${i}" onclick="toggleDay(${i})">${d}</button>
+          <button class="day-btn
+            ${window._selectedDays.includes(i) ? 'selected' : ''}"
+            data-day="${i}" onclick="toggleDay(${i})">${d}</button>
         `).join('')}
       </div>
       <div id="write-days-preview"
@@ -396,7 +402,7 @@ function showEditProjectForm(projectId) {
     </button>
 
     <button class="settings-btn danger"
-            style="margin-top:var(--space-md);width:100%"
+            style="margin-top:var(--space-md);width:100%;text-align:center"
             onclick="confirmDeleteProject('${projectId}')">
       적금 삭제
     </button>
@@ -433,7 +439,9 @@ function submitEditProject(projectId) {
 
 function confirmDeleteProject(projectId) {
   const project = getProject(projectId);
-  if (!confirm(`"${project.name}" 적금을 삭제할까요?\n글은 삭제되지 않아요.`)) return;
+  if (!confirm(
+    `"${project.name}" 적금을 삭제할까요?\n납입 내역은 삭제되지 않아요.`
+  )) return;
   deleteProject(projectId);
   initDashboard();
 }
