@@ -1,29 +1,19 @@
-document.addEventListener('DOMContentLoaded', () => {
-  // Ctrl+S 단축키 — 딱 한 번만 등록
-  document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-      e.preventDefault();
-      const saveBtn = document.getElementById('save-btn');
-      if (saveBtn) savePost();
-    }
-  });
+// 화면 전환 — 이벤트 중복 방지를 위해 각 화면 init 에서 직접 관리
+const SCREENS = ['home', 'editor', 'archive'];
 
-  const lastScreen = localStorage.getItem('lastScreen') || 'dashboard';
-  switchScreen(lastScreen);
+document.addEventListener('DOMContentLoaded', () => {
+  const last = localStorage.getItem('lastScreen') || 'home';
+  go(last);
 
   document.querySelectorAll('[data-screen]').forEach(btn => {
-    btn.addEventListener('click', () => switchScreen(btn.dataset.screen));
+    btn.addEventListener('click', () => go(btn.dataset.screen));
   });
 });
 
-function switchScreen(name) {
-  const screens = ['dashboard', 'editor', 'archive', 'stats', 'settings'];
-  if (!screens.includes(name)) name = 'dashboard';
+function go(name) {
+  if (!SCREENS.includes(name)) name = 'home';
 
-  // editor 에서 다른 화면으로 갈 때 이벤트 정리
-  document.removeEventListener('click', handleDropdownOutsideClick);
-
-  screens.forEach(s => {
+  SCREENS.forEach(s => {
     document.getElementById(`screen-${s}`).hidden = (s !== name);
   });
 
@@ -33,9 +23,7 @@ function switchScreen(name) {
 
   localStorage.setItem('lastScreen', name);
 
-  if (name === 'dashboard') initDashboard();
-  if (name === 'editor')    initEditor();
-  if (name === 'archive')   initArchive();
-  if (name === 'stats')     initStats();
-  if (name === 'settings')  initSettings();
+  if (name === 'home')    initHome();
+  if (name === 'editor')  initEditor();
+  if (name === 'archive') initArchive();
 }
