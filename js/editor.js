@@ -1,8 +1,7 @@
-let _autoSave = null;
+let _autoSave  = null;
 let _projectId = null;
 
 function initEditor() {
-  // 이벤트 정리
   document.removeEventListener('click', _dropdownClose);
 
   const projects = getWritableProjects();
@@ -22,7 +21,6 @@ function initEditor() {
     return;
   }
 
-  // 오늘 글 있는 프로젝트 우선 선택
   const today = getToday();
   const def   = projects.find(p =>
     getPostByDateAndProject(today, p.id)
@@ -75,8 +73,8 @@ function toggleDropdown() {
   const drop = document.getElementById('sel-drop');
   const arr  = document.getElementById('sel-arrow');
   if (!drop) return;
-  const open = !drop.hidden;
-  drop.hidden  = open;
+  const open  = !drop.hidden;
+  drop.hidden = open;
   arr.textContent = open ? '▾' : '▴';
 }
 
@@ -102,22 +100,23 @@ function pickProject(id) {
 }
 
 function renderBody(projectId) {
+  const goalEl = document.getElementById('ed-goal');
+  const bodyEl = document.getElementById('ed-body');
+  if (!goalEl || !bodyEl) return;
+
   const p = getProject(projectId);
   if (!p) return;
 
-  // 오늘 이전까지 쓴 글자 수만 계산
-  const allPosts     = getPostsByProject(projectId);
-  const prevWritten  = allPosts
+  // 어제까지 쓴 글자 수 기준으로 하루 목표 고정
+  const prevWritten = getPostsByProject(projectId)
     .filter(post => getDateStr(post.created_at) < getToday())
     .reduce((s, post) => s + post.char_count, 0);
 
-  // 하루 목표는 어제까지 기준으로 고정
-  const daily    = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
-  const label    = getWriteDaysLabel(p.write_days);
+  const daily     = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
+  const label     = getWriteDaysLabel(p.write_days);
   const todayPost = getPostByDateAndProject(getToday(), projectId);
-  const canWrite = (isWriteDay(p) && p.start_date <= getToday()) || !!todayPost;
+  const canWrite  = (isWriteDay(p) && p.start_date <= getToday()) || !!todayPost;
 
-  // 납입 불가
   if (!canWrite) {
     goalEl.innerHTML = '';
     bodyEl.innerHTML = `
@@ -136,12 +135,13 @@ function renderBody(projectId) {
   const cur      = todayPost ? todayPost.char_count : 0;
   const progress = calcProgress(cur, daily);
 
-  // 목표 바
   goalEl.innerHTML = `
     <div class="goal-bar">
       <div class="goal-label">
         <span>오늘 목표 · ${label}</span>
-        <span id="goal-text">${cur.toLocaleString()} / ${daily.toLocaleString()}자</span>
+        <span id="goal-text">
+          ${cur.toLocaleString()} / ${daily.toLocaleString()}자
+        </span>
       </div>
       <div class="progress">
         <div class="progress-fill ${progress >= 100 ? 'complete' : ''}"
@@ -150,7 +150,6 @@ function renderBody(projectId) {
     </div>
   `;
 
-  // 본문
   bodyEl.innerHTML = `
     <div class="write-area">
       <textarea id="body"
@@ -208,15 +207,16 @@ function updateBar() {
   const count = document.getElementById('char-count');
   if (!ta || !fill) return;
 
-  const cur      = ta.value.length;
-  const daily    = _projectId
-    ? calcDailyTarget(
-        getProject(_projectId).target_chars,
-        getProjectWrittenChars(_projectId),
-        getProject(_projectId).deadline,
-        getProject(_projectId).write_days
-      )
-    : 0;
+  const cur = ta.value.length;
+
+  // 하루 목표는 어제까지 기준으로 재계산
+  const p = getProject(_projectId);
+  if (!p) return;
+
+  const prevWritten = getPostsByProject(_projectId)
+    .filter(post => getDateStr(post.created_at) < getToday())
+    .reduce((s, post) => s + post.char_count, 0);
+  const daily    = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
   const progress = calcProgress(cur, daily);
 
   fill.style.width = progress + '%';
