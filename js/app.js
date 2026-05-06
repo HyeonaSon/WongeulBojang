@@ -1,7 +1,14 @@
 // 화면 전환 — 이벤트 중복 방지를 위해 각 화면 init 에서 직접 관리
 const SCREENS = ['home', 'editor', 'archive'];
 
+// 기존 DOMContentLoaded 안에 추가
 document.addEventListener('DOMContentLoaded', () => {
+
+  // 서비스 워커 등록
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(console.error);
+  }
+
   const last = localStorage.getItem('lastScreen') || 'home';
   go(last);
 
