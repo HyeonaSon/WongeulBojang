@@ -252,7 +252,7 @@ function savePost(silent = false) {
     if (saveBtn) saveBtn.dataset.postId = post.id;
   }
 
-  updateBar();
+  // updateBar() 제거 — 저장해도 목표 바는 그대로 유지
   setStatus(silent ? '저장됨' : '납입 완료 ✓');
   setTimeout(() => setStatus(''), 2000);
 }
