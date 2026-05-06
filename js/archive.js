@@ -103,58 +103,104 @@ function renderArchive() {
 }
 
 function renderGrass(year, byDate) {
-  const startDate = new Date(`${year}-01-01`);
-  const endDate   = new Date(`${year}-12-31`);
-  const today     = new Date(getToday());
-
-  // 모든 날짜의 글자 수
+  const jan1     = new Date(`${year}-01-01`);
+  const dec31    = new Date(`${year}-12-31`);
+  const today    = new Date(getToday());
   const allChars = Object.values(byDate).map(v => v.chars);
   const maxChars = Math.max(...allChars, 1);
 
-  // 시작 요일 (일=0) 만큼 빈 셀 추가
-  const startDow = startDate.getDay();
+  // 주(column) 별로 묶기
+  const startDow = jan1.getDay(); // 1월 1일 요일
+  const cols     = [];
+  let   col      = [];
 
-  let cells = '';
-
-  // 앞 빈 셀
+  // 첫 주 앞 빈 칸
   for (let i = 0; i < startDow; i++) {
-    cells += `<div class="grass-cell empty"></div>`;
+    col.push({ empty: true });
   }
 
-  // 날짜 셀
-  let current = new Date(startDate);
-  while (current <= endDate) {
-    const ds      = current.toISOString().slice(0, 10);
-    const data    = byDate[ds];
+  let current = new Date(jan1);
+  while (current <= dec31) {
+    const ds       = current.toISOString().slice(0, 10);
+    const data     = byDate[ds];
     const isFuture = current > today;
     const isToday  = ds === getToday();
 
     let level = 0;
-    let title = ds;
-
     if (data) {
-      if (data.done) {
-        // 목표 달성 — 글자 수 비례로 레벨 1~4
-        level = Math.min(4, Math.ceil((data.chars / maxChars) * 4));
-        if (level === 0) level = 1;
-      } else {
-        // 글은 썼지만 목표 미달 — 레벨 1 고정 (연한 색)
-        level = 1;
-      }
-      title = `${ds}: ${data.chars.toLocaleString()}자${data.done ? ' ✓' : ''}`;
+      level = data.done
+        ? Math.max(1, Math.min(4, Math.ceil((data.chars / maxChars) * 4)))
+        : 1;
     }
 
-    cells += `
-      <div class="grass-cell level-${isFuture ? 'future' : level}
-           ${isToday ? 'grass-today' : ''}"
-           title="${title}">
-      </div>
-    `;
+    col.push({ ds, level, isFuture, isToday, data });
 
+    if (col.length === 7) {
+      cols.push(col);
+      col = [];
+    }
     current.setDate(current.getDate() + 1);
   }
 
-  return cells;
+  if (col.length > 0) {
+    while (col.length < 7) col.push({ empty: true });
+    cols.push(col);
+  }
+
+  // 월 라벨 위치 계산
+  const monthLabels = [];
+  for (let m = 0; m < 12; m++) {
+    const firstOfMonth = new Date(year, m, 1);
+    const dayOfYear    = Math.floor((firstOfMonth - jan1) / 86400000);
+    const weekIndex    = Math.floor((dayOfYear + startDow) / 7);
+    monthLabels.push({ label: `${m+1}월`, weekIndex });
+  }
+
+  // 월 라벨 행
+  let monthRow = '<div class="grass-month-row">';
+  let lastIdx  = 0;
+  monthLabels.forEach(({ label, weekIndex }) => {
+    const gap = weekIndex - lastIdx;
+    for (let i = 0; i < gap; i++) {
+      monthRow += `<div class="grass-month-label"></div>`;
+    }
+    monthRow += `<div class="grass-month-label">${label}</div>`;
+    lastIdx = weekIndex + 1;
+  });
+  monthRow += '</div>';
+
+  // 컬럼 렌더링
+  const gridCols = cols.map(col => {
+    const cells = col.map(cell => {
+      if (cell.empty) return `<div class="grass-cell empty"></div>`;
+      if (cell.isFuture) return `<div class="grass-cell future"></div>`;
+      const title = cell.data
+        ? `${cell.ds}: ${cell.data.chars.toLocaleString()}자${cell.data.done ? ' ✓' : ''}`
+        : cell.ds;
+      return `
+        <div class="grass-cell level-${cell.level}
+             ${cell.isToday ? 'grass-today' : ''}"
+             title="${title}">
+        </div>
+      `;
+    }).join('');
+    return `<div class="grass-col">${cells}</div>`;
+  }).join('');
+
+  // 요일 라벨
+  const dayLabels = ['일','','화','','목','','토'].map(d => `
+    <div class="grass-day-label">${d}</div>
+  `).join('');
+
+  return `
+    <div class="grass-container">
+      <div class="grass-left">${dayLabels}</div>
+      <div class="grass-right">
+        ${monthRow}
+        <div class="grass-grid">${gridCols}</div>
+      </div>
+    </div>
+  `;
 }
 
 function renderMonthLabels(year) {
