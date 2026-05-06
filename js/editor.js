@@ -118,16 +118,16 @@ function renderBody(projectId) {
   const p = getProject(projectId);
   if (!p) return;
 
-  // 어제까지 쓴 글자 수 기준으로 하루 목표 계산 후 고정
-  const prevWritten = getPostsByProject(projectId)
-    .filter(post => getDateStr(post.created_at) < getToday())
-    .reduce((s, post) => s + post.char_count, 0);
+  // 프로젝트 바뀌거나 오늘 처음 진입할 때만 계산
+  if (!_dailyFixed || _projectId !== projectId) {
+    const prevWritten = getPostsByProject(projectId)
+      .filter(post => getDateStr(post.created_at) < getToday())
+      .reduce((s, post) => s + post.char_count, 0);
+    _daily      = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
+    _dailyFixed = true;
+    _projectId  = projectId;
+  }
 
-  _daily = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
-
-  // ... 나머지 동일
-
-  const daily     = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
   const label     = getWriteDaysLabel(p.write_days);
   const todayPost = getPostByDateAndProject(getToday(), projectId);
   const canWrite  = (isWriteDay(p) && p.start_date <= getToday()) || !!todayPost;
@@ -148,14 +148,14 @@ function renderBody(projectId) {
   }
 
   const cur      = todayPost ? todayPost.char_count : 0;
-  const progress = calcProgress(cur, daily);
+  const progress = calcProgress(cur, _daily);
 
   goalEl.innerHTML = `
     <div class="goal-bar">
       <div class="goal-label">
         <span>오늘 목표 · ${label}</span>
         <span id="goal-text">
-          ${cur.toLocaleString()} / ${daily.toLocaleString()}자
+          ${cur.toLocaleString()} / ${_daily.toLocaleString()}자
         </span>
       </div>
       <div class="progress">
