@@ -124,8 +124,16 @@ function getCatClass(categoryName) {
 
 function calcDailyTarget(targetChars, writtenChars, deadline, writeDays) {
   const remaining = Math.max(0, targetChars - writtenChars);
-  const days      = countWritableDays(getToday(), deadline, writeDays);
-  return Math.ceil(remaining / days);
+
+  // 내일부터 마감일까지 남은 납입 가능 일수 + 오늘 포함
+  const tomorrow = new Date(getToday());
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+
+  // 오늘 포함한 남은 일수
+  const days = countWritableDays(getToday(), deadline, writeDays);
+
+  return Math.ceil(remaining / Math.max(1, days));
 }
 
 function calcProgress(written, target) {
