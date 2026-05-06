@@ -108,10 +108,14 @@ function renderBody(projectId) {
   const p = getProject(projectId);
   if (!p) return;
 
-  // 어제까지 쓴 글자 수 기준으로 하루 목표 고정
+  // 어제까지 쓴 글자 수 기준으로 하루 목표 계산 후 고정
   const prevWritten = getPostsByProject(projectId)
     .filter(post => getDateStr(post.created_at) < getToday())
     .reduce((s, post) => s + post.char_count, 0);
+
+  _daily = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
+
+  // ... 나머지 동일
 
   const daily     = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
   const label     = getWriteDaysLabel(p.write_days);
@@ -208,21 +212,12 @@ function updateBar() {
   const count = document.getElementById('char-count');
   if (!ta || !fill) return;
 
-  const cur = ta.value.length;
-
-  // 하루 목표는 어제까지 기준으로 재계산
-  const p = getProject(_projectId);
-  if (!p) return;
-
-  const prevWritten = getPostsByProject(_projectId)
-    .filter(post => getDateStr(post.created_at) < getToday())
-    .reduce((s, post) => s + post.char_count, 0);
-  const daily    = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
-  const progress = calcProgress(cur, daily);
+  const cur      = ta.value.length;
+  const progress = calcProgress(cur, _daily);  // ← 고정된 _daily 사용
 
   fill.style.width = progress + '%';
   fill.classList.toggle('complete', progress >= 100);
-  if (text)  text.textContent  = `${cur.toLocaleString()} / ${daily.toLocaleString()}자`;
+  if (text)  text.textContent  = `${cur.toLocaleString()} / ${_daily.toLocaleString()}자`;
   if (count) count.textContent = `${cur.toLocaleString()}자`;
 }
 
