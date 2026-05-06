@@ -320,10 +320,13 @@ function openProjectDetail(projectId) {
 // ── 글 상세 보기 (납입 내역 클릭) ────────────
 
 function openPostDetail(postId) {
-  const post    = getAllPosts().find(p => p.id === postId);
-  if (!post) return;
-  const locked  = !isEditable(post);
-  openPost(post, locked);
+  const post = JSON.parse(localStorage.getItem(`post_${postId}`));
+  if (!post) {
+    alert('글을 불러올 수 없어요.');
+    return;
+  }
+  // 항상 읽기 전용으로 열기
+  openPost(post, true);
 }
 
 // ── 적금 수정 폼 ──────────────────────────────
