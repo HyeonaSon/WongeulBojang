@@ -23,16 +23,16 @@
   --font-serif: 'Nanum Myeongjo', Georgia, serif;
   --font-sans:  'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
-  --text-xs:   11px;
-  --text-sm:   13px;
-  --text-base: 15px;
-  --text-md:   17px;
-  --text-lg:   22px;
-  --text-xl:   28px;
-  --text-2xl:  36px;
+  --text-xs:   12px;   /* 11 → 12 */
+  --text-sm:   14px;   /* 13 → 14 */
+  --text-base: 17px;   /* 15 → 17 */
+  --text-md:   19px;   /* 17 → 19 */
+  --text-lg:   24px;   /* 22 → 24 */
+  --text-xl:   30px;   /* 28 → 30 */
+  --text-2xl:  40px;   /* 36 → 40 */
 
   --leading-tight: 1.4;
-  --leading-body:  1.9;
+  --leading-body:  2.0;  /* 1.9 → 2.0 */
 }
 
 body {
