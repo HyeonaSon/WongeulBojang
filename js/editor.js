@@ -1,23 +1,13 @@
-let _autoSave  = null;
-let _autoSave  = null;
-let _projectId = null;
-let _daily     = 0;
-let _dailyFixed = false;  // ← 추가 — 오늘 이미 계산했는지 체크
+let _autoSave   = null;
+let _projectId  = null;
+let _daily      = 0;
 
 function initEditor() {
   document.removeEventListener('click', _dropdownClose);
 
-  // 날짜가 바뀌면 리셋
-  const todayKey = localStorage.getItem('_dailyDate');
-  if (todayKey !== getToday()) {
-    _dailyFixed = false;
-    localStorage.setItem('_dailyDate', getToday());
-  }
-
   const projects = getWritableProjects();
   const el       = document.getElementById('screen-editor');
 
-  // ... 나머지 동일
   if (projects.length === 0) {
     el.innerHTML = `
       <div class="editor-date">${formatDate(getToday())}</div>
@@ -37,7 +27,9 @@ function initEditor() {
     getPostByDateAndProject(today, p.id)
   ) || projects[0];
 
+  // _daily 는 여기서 딱 한 번만 계산
   _projectId = def.id;
+  _daily     = calcFixed(_projectId);
 
   el.innerHTML = `
     <div class="editor-top">
@@ -72,69 +64,34 @@ function initEditor() {
   `;
 
   document.addEventListener('click', _dropdownClose);
-  renderBody(_projectId);
+  renderGoal();
+  renderTextarea();
 }
 
-function _dropdownClose(e) {
-  const wrap = document.getElementById('sel-wrap');
-  if (wrap && !wrap.contains(e.target)) closeDropdown();
-}
-
-function toggleDropdown() {
-  const drop = document.getElementById('sel-drop');
-  const arr  = document.getElementById('sel-arrow');
-  if (!drop) return;
-  const open  = !drop.hidden;
-  drop.hidden = open;
-  arr.textContent = open ? '▾' : '▴';
-}
-
-function closeDropdown() {
-  const drop = document.getElementById('sel-drop');
-  const arr  = document.getElementById('sel-arrow');
-  if (drop) drop.hidden = true;
-  if (arr)  arr.textContent = '▾';
-}
-
-function pickProject(id) {
-  _projectId = id;
-
-  const nameEl = document.getElementById('sel-name');
-  if (nameEl) nameEl.textContent = getProject(id).name;
-
-  document.querySelectorAll('.select-option').forEach(el => {
-    el.classList.toggle('on', el.dataset.id === id);
-  });
-
-  closeDropdown();
-  renderBody(id);
-}
-
-function renderBody(projectId) {
-  const goalEl = document.getElementById('ed-goal');
-  const bodyEl = document.getElementById('ed-body');
-  if (!goalEl || !bodyEl) return;
-
+// _daily 계산 — 어제까지 쓴 것 기준
+function calcFixed(projectId) {
   const p = getProject(projectId);
+  if (!p) return 0;
+  const prevWritten = getPostsByProject(projectId)
+    .filter(post => getDateStr(post.created_at) < getToday())
+    .reduce((s, post) => s + post.char_count, 0);
+  return calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
+}
+
+// 목표 바만 그리기
+function renderGoal() {
+  const goalEl   = document.getElementById('ed-goal');
+  if (!goalEl) return;
+
+  const p        = getProject(_projectId);
   if (!p) return;
 
-  // 프로젝트 바뀌거나 오늘 처음 진입할 때만 계산
-  if (!_dailyFixed || _projectId !== projectId) {
-    const prevWritten = getPostsByProject(projectId)
-      .filter(post => getDateStr(post.created_at) < getToday())
-      .reduce((s, post) => s + post.char_count, 0);
-    _daily      = calcDailyTarget(p.target_chars, prevWritten, p.deadline, p.write_days);
-    _dailyFixed = true;
-    _projectId  = projectId;
-  }
-
-  const label     = getWriteDaysLabel(p.write_days);
-  const todayPost = getPostByDateAndProject(getToday(), projectId);
-  const canWrite  = (isWriteDay(p) && p.start_date <= getToday()) || !!todayPost;
+  const label    = getWriteDaysLabel(p.write_days);
+  const todayPost = getPostByDateAndProject(getToday(), _projectId);
+  const canWrite = (isWriteDay(p) && p.start_date <= getToday()) || !!todayPost;
 
   if (!canWrite) {
-    goalEl.innerHTML = '';
-    bodyEl.innerHTML = `
+    goalEl.innerHTML = `
       <div class="locked-state">
         <div class="locked-icon">📅</div>
         <div class="locked-title">오늘은 납입일이 아니에요</div>
@@ -164,6 +121,21 @@ function renderBody(projectId) {
       </div>
     </div>
   `;
+}
+
+// textarea 만 그리기
+function renderTextarea() {
+  const bodyEl   = document.getElementById('ed-body');
+  if (!bodyEl) return;
+
+  const p        = getProject(_projectId);
+  if (!p) return;
+
+  const todayPost = getPostByDateAndProject(getToday(), _projectId);
+  const canWrite  = (isWriteDay(p) && p.start_date <= getToday()) || !!todayPost;
+  if (!canWrite) return;
+
+  const cur = todayPost ? todayPost.char_count : 0;
 
   bodyEl.innerHTML = `
     <div class="write-area">
@@ -197,6 +169,43 @@ function renderBody(projectId) {
   }
 }
 
+function _dropdownClose(e) {
+  const wrap = document.getElementById('sel-wrap');
+  if (wrap && !wrap.contains(e.target)) closeDropdown();
+}
+
+function toggleDropdown() {
+  const drop = document.getElementById('sel-drop');
+  const arr  = document.getElementById('sel-arrow');
+  if (!drop) return;
+  const open  = !drop.hidden;
+  drop.hidden = open;
+  arr.textContent = open ? '▾' : '▴';
+}
+
+function closeDropdown() {
+  const drop = document.getElementById('sel-drop');
+  const arr  = document.getElementById('sel-arrow');
+  if (drop) drop.hidden = true;
+  if (arr)  arr.textContent = '▾';
+}
+
+function pickProject(id) {
+  _projectId = id;
+  _daily     = calcFixed(id);  // 프로젝트 바뀔 때만 재계산
+
+  const nameEl = document.getElementById('sel-name');
+  if (nameEl) nameEl.textContent = getProject(id).name;
+
+  document.querySelectorAll('.select-option').forEach(el => {
+    el.classList.toggle('on', el.dataset.id === id);
+  });
+
+  closeDropdown();
+  renderGoal();
+  renderTextarea();
+}
+
 function onInput() {
   resizeTA();
   updateBar();
@@ -223,7 +232,7 @@ function updateBar() {
   if (!ta || !fill) return;
 
   const cur      = ta.value.length;
-  const progress = calcProgress(cur, _daily);  // ← 고정된 _daily 사용
+  const progress = calcProgress(cur, _daily);  // 고정된 _daily 사용
 
   fill.style.width = progress + '%';
   fill.classList.toggle('complete', progress >= 100);
@@ -259,10 +268,14 @@ function savePost(silent = false) {
     updatePost(postId, _projectId, body);
   } else {
     const post = createPost(_projectId, body);
-    if (saveBtn) saveBtn.dataset.postId = post.id;
+    if (saveBtn) {
+      saveBtn.dataset.postId = post.id;
+      // 버튼 텍스트만 바꾸기 — 전체 재렌더링 없음
+      saveBtn.textContent = '수정';
+    }
   }
 
-  // updateBar() 제거 — 저장해도 목표 바는 그대로 유지
+  // 저장 후 목표 바, textarea 절대 재렌더링 안 함
   setStatus(silent ? '저장됨' : '납입 완료 ✓');
   setTimeout(() => setStatus(''), 2000);
 }
