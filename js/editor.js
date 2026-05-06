@@ -1,13 +1,23 @@
 let _autoSave  = null;
+let _autoSave  = null;
 let _projectId = null;
-let _daily     = 0;  // ← 추가 — 렌더링 시 고정된 하루 목표
+let _daily     = 0;
+let _dailyFixed = false;  // ← 추가 — 오늘 이미 계산했는지 체크
 
 function initEditor() {
   document.removeEventListener('click', _dropdownClose);
 
+  // 날짜가 바뀌면 리셋
+  const todayKey = localStorage.getItem('_dailyDate');
+  if (todayKey !== getToday()) {
+    _dailyFixed = false;
+    localStorage.setItem('_dailyDate', getToday());
+  }
+
   const projects = getWritableProjects();
   const el       = document.getElementById('screen-editor');
 
+  // ... 나머지 동일
   if (projects.length === 0) {
     el.innerHTML = `
       <div class="editor-date">${formatDate(getToday())}</div>
